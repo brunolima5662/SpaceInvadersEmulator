@@ -27,10 +27,6 @@ void initialize_machine(machine_t * state) {
     state->ports[2] = 0x08 | (GAME_NUMBER_OF_LIVES - 3); // bit 3 is always set
 }
 
-void load_rom(machine_t * state, uint16_t start) {
-    memcpy(&state->memory[start], &_rom_start, _rom_size);
-}
-
 int check_machine_instruction(machine_t * state) {
     uint16_t value;
     uint8_t * op = &state->memory[state->pc];
