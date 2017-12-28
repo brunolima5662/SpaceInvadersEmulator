@@ -36,9 +36,6 @@ int main(int argc, char * argv[]) {
     machine_t machine;
     initialize_machine(&machine);
 
-    // read the rom file into the machine's memory
-    load_rom(&machine, 0);
-
     // start the emulation loop
     uint64_t cycles = 0;
     uint16_t ms_per_frame = (uint32_t)((1.0f / VIDEO_HZ) * 1000);

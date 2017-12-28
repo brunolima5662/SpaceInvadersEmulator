@@ -1,6 +1,6 @@
 EXEC = build/space-invaders
 ROM = rom/rom
-OBJECTS = build/disassembler.o build/emulator.o build/machine.o build/rom.o
+OBJECTS = build/disassembler.o build/emulator.o build/machine.o
 HEADERS = src/machine.h src/disassembler.h src/emulator.h
 FLAGS = -Wall
 LIBS = -lSDL2
@@ -17,9 +17,6 @@ build/disassembler.o: src/disassembler.c
 
 build/machine.o: src/machine.c
 	cc -c src/machine.c $(FLAGS) $(LIBS) -o build/machine.o
-
-build/rom.o: rom/rom.asm $(ROM)
-	nasm -f elf64 -d FILE=\"$(ROM)\" rom/rom.asm -o build/rom.o
 
 clean:
 	rm $(EXEC) $(OBJECTS)
