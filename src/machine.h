@@ -3,16 +3,16 @@
 #ifndef MACHINE
 #define MACHINE
 
-#define MEMORY_SIZE 65536 // in bytes
+#define MEMORY_SIZE 0x10000
+#define ROM_START 0x0000
+#define RAM_START 0x2000
+#define VIDEO_RAM_START 0x2400
+#define RAM_MIRROR_START 0x4000
+
 #define VIDEO_X 256 // in pixels
 #define VIDEO_Y 224 // in pixes
 #define VIDEO_SCANLINE 32 // in bytes
 #define VIDEO_HZ 60 // in Hz
-
-#define ROM_START 0x0000
-#define RAM_START 0x2000
-#define VIDEO_START 0x2400
-#define RAM_MIRROR_START 0x4000
 
 typedef struct machine {
     uint8_t a;
