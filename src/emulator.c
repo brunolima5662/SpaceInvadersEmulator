@@ -1,86 +1,141 @@
 #include "emulator.h"
 
-void update_flags(machine_t * state, uint16_t value) {
-    state->z = (value == 0) ? 1 : 0;
-    state->s = (uint8_t)((value >> 7) & 0x01);
-    state->p = (value % 2) == 0
-    state->cy = (value >> 8) & 0x01
+void update_flags(machine_t * state, uint16_t value, uint8_t mask) {
+    if(mask & 0x01)
+        state->z  = (value == 0) ? 1 : 0;
+    if(mask & 0x02)
+        state->s  = (uint8_t)((value >> 7) & 0x01);
+    if(mask & 0x04)
+        state->p  = (uint8_t)(~value & 0x01);
+    if(mask & 0x08)
+        state->cy = (uint8_t)((value >> 8) & 0x01);
 }
 
-uint8_t emulate_instruction(machine_t * state, uint16_t * pc) {
-    unsigned char * op = &state->memory[*pc];
+uint8_t emulate_instruction(machine_t * state) {
+    uint16_t result;
+    unsigned char * op = &state->memory[state->pc];
     switch(*op) {
         case 0x00: break;
-        case 0x01: state->b = op[2]; state->c = op[1]; (*pc) += 2; break;
+        case 0x01: state->b = op[2]; state->c = op[1]; state->pc += 2; break;
         case 0x02: state->memory[(state->b << 8) | state->c] = state->a; break;
-        case 0x03: state->memory[(state->b << 8) | state->c] += 1; break;
+        case 0x03:
+            result   = ((state->b << 8) | state->c) + 1;
+            state->b = (uint8_t)(result >> 8);
+            state->c = (uint8_t)(result & 0xff);
+            break;
         case 0x04:
-            uint16_t result = (uint16_t)state->b + 1;
+            result = (uint16_t)state->b + 1;
             state->b = (uint8_t)(result & 0xff);
-            update_flags(state, result);
+            update_flags(state, result, 0x07);
             break;
         case 0x05:
-            uint16_t result = (uint16_t)state->b - 1;
+            result = (uint16_t)state->b - 1;
             state->b = (uint8_t)(result & 0xff);
-            update_flags(state, result);
+            update_flags(state, result, 0x07);
             break;
-        case 0x06: state->b = op[2]; (*pc) += 1; break;
-        case 0x07: printf("RLC\n"); break;
+        case 0x06: state->b = op[1]; state->pc += 1; break;
+        case 0x07:
+            state->cy = ((state->a >> 7) & 0x01);
+            state->a  = (state->a << 1) | ((state->a >> 7) & 0x01);
+            break;
         case 0x08: break;
-        case 0x09: printf("DAD  B\n"); break;
-        case 0x0a: printf("LDAX B\n"); break;
-        case 0x0b: printf("DCX  B\n"); break;
-        case 0x0c: printf("INR  C\n"); break;
-        case 0x0d: printf("DCR  C\n"); break;
-        case 0x0e: printf("MVI  C 0x%02x\n", op[1]); (*pc) += 1; break;
-        case 0x0f: printf("RRC\n"); break;
+        case 0x09:
+            result = ((state->h << 8) | state->l) + ((state->b << 8) | state->c);
+            state->h = (uint8_t)(result >> 8);
+            state->l = (uint8_t)(result & 0xff);
+            update_flags(state, result, 0x08);
+            break;
+        case 0x0a: state->a = state->memory[(state->b << 8) | state->c]; break;
+        case 0x0b:
+            result = ((state->b << 8) | state->c) - 1;
+            state->b = (uint8_t)(result >> 8);
+            state->c = (uint8_t)(result & 0xff);
+            break;
+        case 0x0c:
+            state->c += 1;
+            update_flags(state, (uint16_t)state->c, 0x07);
+            break;
+        case 0x0d:
+            state->c -= 1;
+            update_flags(state, (uint16_t)state->c, 0x07);
+            break;
+        case 0x0e: state->c = op[1]; state->pc += 1; break;
+        case 0x0f:
+            state->cy = (state->a & 0x01)
+            state->a  = (state->a >> 1) | ((state->a << 7) & 0x80);
+            break;
         case 0x10: break;
-        case 0x11: printf("LXI  D 0x%02x,0x%02x\n", op[2], op[1]); (*pc) += 2; break;
-        case 0x12: printf("STAX D\n"); break;
-        case 0x13: printf("INX  D\n"); break;
-        case 0x14: printf("INR  D\n"); break;
-        case 0x15: printf("DCR  D\n"); break;
-        case 0x16: printf("MVI  D 0x%02x\n", op[1]); (*pc) += 1; break;
+        case 0x11: state->d = op[2]; state->e = op[1]; state->pc += 2; break;
+        case 0x12: state->memory[(state->d << 8) | state->e] = state->a; break;
+        case 0x13:
+            result   = ((state->d << 8) | state->e) + 1;
+            state->d = (uint8_t)(result >> 8);
+            state->e = (uint8_t)(result & 0xff);
+            break;
+        case 0x14:
+            state->d += 1;
+            update_flags(state, (uint16_t)state->d, 0x07);
+            break;
+        case 0x15:
+            state->d -= 1;
+            update_flags(state, (uint16_t)state->d, 0x07);
+            break;
+        case 0x16: state->d = op[1]; state->pc += 1; break;
         case 0x17: printf("RAL\n"); break;
         case 0x18: break;
-        case 0x19: printf("DAD  D\n"); break;
+        case 0x19:
+            result = ((state->h << 8) | state->l) + ((state->d << 8) | state->e);
+            state->h = (uint8_t)(result >> 8);
+            state->l = (uint8_t)(result & 0xff);
+            update_flags(state, result, 0x08);
+            break;
         case 0x1a: printf("LDAX D\n"); break;
         case 0x1b: printf("DCX  D\n"); break;
         case 0x1c: printf("INR  E\n"); break;
         case 0x1d: printf("DCR  E\n"); break;
-        case 0x1e: printf("MVI	E 0x%02x\n", op[1]); (*pc) += 1; break;
+        case 0x1e: printf("MVI	E 0x%02x\n", op[1]); state->pc += 1; break;
         case 0x1f: printf("RAR\n"); break;
         case 0x20: printf("RIM\n"); break;
-        case 0x21: printf("LXI  H 0x%02x,0x%02x\n", op[2], op[1]); (*pc) += 2; break;
-        case 0x22: printf("SHLD adr\n"); (*pc) += 2; break;
+        case 0x21: printf("LXI  H 0x%02x,0x%02x\n", op[2], op[1]); state->pc += 2; break;
+        case 0x22: printf("SHLD adr\n"); state->pc += 2; break;
         case 0x23: printf("INX  H\n"); break;
         case 0x24: printf("INR  H\n"); break;
         case 0x25: printf("DCR  H\n"); break;
-        case 0x26: printf("MVI  H 0x%02x\n", op[1]); (*pc) += 1; break;
+        case 0x26: printf("MVI  H 0x%02x\n", op[1]); state->pc += 1; break;
         case 0x27: printf("DAA\n"); break;
         case 0x28: break;
-        case 0x29: printf("DAD  H\n"); break;
-        case 0x2a: printf("LHLD adr\n"); (*pc) += 2; break;
+        case 0x29:
+            result = ((state->h << 8) | state->l) + ((state->h << 8) | state->l);
+            state->h = (uint8_t)(result >> 8);
+            state->l = (uint8_t)(result & 0xff);
+            update_flags(state, result, 0x08);
+            break;
+        case 0x2a: printf("LHLD adr\n"); state->pc += 2; break;
         case 0x2b: printf("DCX  H\n"); break;
         case 0x2c: printf("INR  L\n"); break;
         case 0x2d: printf("DCR	L\n"); break;
-        case 0x2e: printf("MVI  L 0x%02x\n", op[1]); (*pc) += 1; break;
+        case 0x2e: printf("MVI  L 0x%02x\n", op[1]); state->pc += 1; break;
         case 0x2f: printf("CMA\n"); break;
         case 0x30: printf("SIM\n"); break;
-        case 0x31: printf("LXI  SP 0x%02x,0x%02x\n", op[2], op[1]); (*pc) += 2; break;
-        case 0x32: printf("STA  adr\n"); (*pc) += 2; break;
+        case 0x31: printf("LXI  SP 0x%02x,0x%02x\n", op[2], op[1]); state->pc += 2; break;
+        case 0x32: printf("STA  adr\n"); state->pc += 2; break;
         case 0x33: printf("INX	SP\n"); break;
         case 0x34: printf("INR  M\n"); break;
         case 0x35: printf("DCR  M\n"); break;
-        case 0x36: printf("MVI  M 0x%02x\n", op[1]); (*pc) += 1; break;
+        case 0x36: printf("MVI  M 0x%02x\n", op[1]); state->pc += 1; break;
         case 0x37: printf("STC\n"); break;
         case 0x38: break;
-        case 0x39: printf("DAD  SP\n"); break;
-        case 0x3a: printf("LDA  adr\n"); (*pc) += 2; break;
+        case 0x39:
+            result = ((state->h << 8) | state->l) + state->sp;
+            state->h = (uint8_t)(result >> 8);
+            state->l = (uint8_t)(result & 0xff);
+            update_flags(state, result, 0x08);
+            break;
+        case 0x3a: printf("LDA  adr\n"); state->pc += 2; break;
         case 0x3b: printf("DCX	SP\n"); break;
         case 0x3c: printf("INR  A\n"); break;
         case 0x3d: printf("DCR  A\n"); break;
-        case 0x3e: printf("MVI  A 0x%02x\n", op[1]); (*pc) += 1; break;
+        case 0x3e: printf("MVI  A 0x%02x\n", op[1]); state->pc += 1; break;
         case 0x3f: printf("CMC\n"); break;
         case 0x40: printf("MOV  B B\n"); break;
         case 0x41: printf("MOV  B C\n"); break;
@@ -212,70 +267,70 @@ uint8_t emulate_instruction(machine_t * state, uint16_t * pc) {
         case 0xbf: printf("CMP  A\n"); break;
         case 0xc0: printf("RNZ\n"); break;
         case 0xc1: printf("POP  B\n"); break;
-        case 0xc2: printf("JNZ  adr\n"); (*pc) += 2; break;
-        case 0xc3: printf("JMP  0x%02x%02x\n", op[2], op[1]); (*pc) += 2; break;
-        case 0xc4: printf("CNZ  adr\n"); (*pc) += 2; break;
+        case 0xc2: printf("JNZ  adr\n"); state->pc += 2; break;
+        case 0xc3: printf("JMP  0x%02x%02x\n", op[2], op[1]); state->pc += 2; break;
+        case 0xc4: printf("CNZ  adr\n"); state->pc += 2; break;
         case 0xc5: printf("PUSH B\n"); break;
-        case 0xc6: printf("ADI  0x%02x\n", op[1]); (*pc) += 1; break;
+        case 0xc6: printf("ADI  0x%02x\n", op[1]); state->pc += 1; break;
         case 0xc7: printf("RST  0\n"); break;
         case 0xc8: printf("RZ\n"); break;
         case 0xc9: printf("RET\n"); break;
-        case 0xca: printf("JZ   adr\n"); (*pc) += 2; break;
+        case 0xca: printf("JZ   adr\n"); state->pc += 2; break;
         case 0xcb: break;
-        case 0xcc: printf("CZ   adr\n"); (*pc) += 2; break;
-        case 0xcd: printf("CALL adr\n"); (*pc) += 2; break;
-        case 0xce: printf("ACI  0x%02x\n", op[1]); (*pc) += 1; break;
+        case 0xcc: printf("CZ   adr\n"); state->pc += 2; break;
+        case 0xcd: printf("CALL adr\n"); state->pc += 2; break;
+        case 0xce: printf("ACI  0x%02x\n", op[1]); state->pc += 1; break;
         case 0xcf: printf("RST  1\n"); break;
         case 0xd0: printf("RNC\n"); break;
         case 0xd1: printf("POP  D\n"); break;
-        case 0xd2: printf("JNC  adr\n"); (*pc) += 2; break;
-        case 0xd3: printf("OUT  0x%02x\n", op[1]); (*pc) += 1; break;
-        case 0xd4: printf("CNC  adr\n"); (*pc) += 2; break;
+        case 0xd2: printf("JNC  adr\n"); state->pc += 2; break;
+        case 0xd3: printf("OUT  0x%02x\n", op[1]); state->pc += 1; break;
+        case 0xd4: printf("CNC  adr\n"); state->pc += 2; break;
         case 0xd5: printf("PUSH D\n"); break;
-        case 0xd6: printf("SUI  0x%02x\n", op[1]); (*pc) += 1; break;
+        case 0xd6: printf("SUI  0x%02x\n", op[1]); state->pc += 1; break;
         case 0xd7: printf("RST  2\n"); break;
         case 0xd8: printf("RC\n"); break;
         case 0xd9: break;
-        case 0xda: printf("JC   adr\n"); (*pc) += 2; break;
-        case 0xdb: printf("IN   0x%02x\n", op[1]); (*pc) += 1; break;
-        case 0xdc: printf("CC   adr\n"); (*pc) += 2; break;
+        case 0xda: printf("JC   adr\n"); state->pc += 2; break;
+        case 0xdb: printf("IN   0x%02x\n", op[1]); state->pc += 1; break;
+        case 0xdc: printf("CC   adr\n"); state->pc += 2; break;
         case 0xdd: break;
-        case 0xde: printf("SBI  0x%02x\n", op[1]); (*pc) += 1; break;
+        case 0xde: printf("SBI  0x%02x\n", op[1]); state->pc += 1; break;
         case 0xdf: printf("RST  3\n"); break;
         case 0xe0: printf("RPO\n"); break;
         case 0xe1: printf("POP  H\n"); break;
-        case 0xe2: printf("JPO  adr\n"); (*pc) += 2; break;
+        case 0xe2: printf("JPO  adr\n"); state->pc += 2; break;
         case 0xe3: printf("XTHL\n"); break;
-        case 0xe4: printf("CPO  adr\n"); (*pc) += 2; break;
+        case 0xe4: printf("CPO  adr\n"); state->pc += 2; break;
         case 0xe5: printf("PUSH H\n"); break;
-        case 0xe6: printf("ANI  0x%02x\n", op[1]); (*pc) += 1; break;
+        case 0xe6: printf("ANI  0x%02x\n", op[1]); state->pc += 1; break;
         case 0xe7: printf("RST  4\n"); break;
         case 0xe8: printf("RPE\n"); break;
         case 0xe9: printf("PCHL\n"); break;
-        case 0xea: printf("JPE  adr\n"); (*pc) += 2; break;
+        case 0xea: printf("JPE  adr\n"); state->pc += 2; break;
         case 0xeb: printf("XCHX\n"); break;
-        case 0xec: printf("CPE  adr\n"); (*pc) += 2; break;
+        case 0xec: printf("CPE  adr\n"); state->pc += 2; break;
         case 0xed: break;
-        case 0xee: printf("XRI  0x%02x\n", op[1]); (*pc) += 1; break;
+        case 0xee: printf("XRI  0x%02x\n", op[1]); state->pc += 1; break;
         case 0xef: printf("RST  5\n"); break;
         case 0xf0: printf("RP\n"); break;
         case 0xf1: printf("POP  PSW\n"); break;
-        case 0xf2: printf("JP   adr\n"); (*pc) += 2; break;
+        case 0xf2: printf("JP   adr\n"); state->pc += 2; break;
         case 0xf3: printf("DI\n"); break;
-        case 0xf4: printf("CP   adr\n"); (*pc) += 2; break;
+        case 0xf4: printf("CP   adr\n"); state->pc += 2; break;
         case 0xf5: printf("PUSH PSW\n"); break;
-        case 0xf6: printf("ORI  0x%02x\n", op[1]); (*pc) += 1; break;
+        case 0xf6: printf("ORI  0x%02x\n", op[1]); state->pc += 1; break;
         case 0xf7: printf("RST  6\n"); break;
         case 0xf8: printf("RM\n"); break;
         case 0xf9: printf("SPHL\n"); break;
-        case 0xfa: printf("JM   adr\n"); (*pc) += 2; break;
+        case 0xfa: printf("JM   adr\n"); state->pc += 2; break;
         case 0xfb: printf("EI\n"); break;
-        case 0xfc: printf("CM   adr\n"); (*pc) += 2; break;
+        case 0xfc: printf("CM   adr\n"); state->pc += 2; break;
         case 0xfd: break;
-        case 0xfe: printf("CPI  0x%02x\n", op[1]); (*pc) += 1; break;
+        case 0xfe: printf("CPI  0x%02x\n", op[1]); state->pc += 1; break;
         case 0xff: printf("RST  7\n"); break;
         default: _unimpl(*op); return 0;
     }
-    (*pc) += 1;
+    state->pc += 1;
     return 1;
 }
