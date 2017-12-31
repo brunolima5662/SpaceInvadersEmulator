@@ -1,21 +1,32 @@
-#include "disassembler.h"
+#include "emulator.h"
 
-void _unimpl(unsigned char opcode) {
-    printf("OPCODE NOT IMPLEMENTED: 0x%02x\n", opcode);
+void update_flags(machine_t * state, uint16_t value) {
+    state->z = (value == 0) ? 1 : 0;
+    state->s = (uint8_t)((value >> 7) & 0x01);
+    state->p = (value % 2) == 0
+    state->cy = (value >> 8) & 0x01
 }
 
-uint8_t disassemble_opcode(unsigned char * mem, uint16_t * pc) {
-    unsigned char * op = &mem[*pc];
+uint8_t emulate_instruction(machine_t * state, uint16_t * pc) {
+    unsigned char * op = &state->memory[*pc];
     switch(*op) {
-        case 0x00: printf("NOP\n"); break;
-        case 0x01: printf("LXI  B 0x%02x,0x%02x\n", op[2], op[1]); (*pc) += 2; break;
-        case 0x02: printf("STAX B\n"); break;
-        case 0x03: printf("INX  B\n"); break;
-        case 0x04: printf("INR  B\n"); break;
-        case 0x05: printf("DCR  B\n"); break;
-        case 0x06: printf("MVI  B 0x%02x\n", op[1]); (*pc) += 1; break;
+        case 0x00: break;
+        case 0x01: state->b = op[2]; state->c = op[1]; (*pc) += 2; break;
+        case 0x02: state->memory[(state->b << 8) | state->c] = state->a; break;
+        case 0x03: state->memory[(state->b << 8) | state->c] += 1; break;
+        case 0x04:
+            uint16_t result = (uint16_t)state->b + 1;
+            state->b = (uint8_t)(result & 0xff);
+            update_flags(state, result);
+            break;
+        case 0x05:
+            uint16_t result = (uint16_t)state->b - 1;
+            state->b = (uint8_t)(result & 0xff);
+            update_flags(state, result);
+            break;
+        case 0x06: state->b = op[2]; (*pc) += 1; break;
         case 0x07: printf("RLC\n"); break;
-        case 0x08: printf("NOP\n"); break;
+        case 0x08: break;
         case 0x09: printf("DAD  B\n"); break;
         case 0x0a: printf("LDAX B\n"); break;
         case 0x0b: printf("DCX  B\n"); break;
@@ -23,7 +34,7 @@ uint8_t disassemble_opcode(unsigned char * mem, uint16_t * pc) {
         case 0x0d: printf("DCR  C\n"); break;
         case 0x0e: printf("MVI  C 0x%02x\n", op[1]); (*pc) += 1; break;
         case 0x0f: printf("RRC\n"); break;
-        case 0x10: printf("NOP\n"); break;
+        case 0x10: break;
         case 0x11: printf("LXI  D 0x%02x,0x%02x\n", op[2], op[1]); (*pc) += 2; break;
         case 0x12: printf("STAX D\n"); break;
         case 0x13: printf("INX  D\n"); break;
@@ -31,7 +42,7 @@ uint8_t disassemble_opcode(unsigned char * mem, uint16_t * pc) {
         case 0x15: printf("DCR  D\n"); break;
         case 0x16: printf("MVI  D 0x%02x\n", op[1]); (*pc) += 1; break;
         case 0x17: printf("RAL\n"); break;
-        case 0x18: printf("NOP\n"); break;
+        case 0x18: break;
         case 0x19: printf("DAD  D\n"); break;
         case 0x1a: printf("LDAX D\n"); break;
         case 0x1b: printf("DCX  D\n"); break;
@@ -47,7 +58,7 @@ uint8_t disassemble_opcode(unsigned char * mem, uint16_t * pc) {
         case 0x25: printf("DCR  H\n"); break;
         case 0x26: printf("MVI  H 0x%02x\n", op[1]); (*pc) += 1; break;
         case 0x27: printf("DAA\n"); break;
-        case 0x28: printf("NOP\n"); break;
+        case 0x28: break;
         case 0x29: printf("DAD  H\n"); break;
         case 0x2a: printf("LHLD adr\n"); (*pc) += 2; break;
         case 0x2b: printf("DCX  H\n"); break;
@@ -63,7 +74,7 @@ uint8_t disassemble_opcode(unsigned char * mem, uint16_t * pc) {
         case 0x35: printf("DCR  M\n"); break;
         case 0x36: printf("MVI  M 0x%02x\n", op[1]); (*pc) += 1; break;
         case 0x37: printf("STC\n"); break;
-        case 0x38: printf("NOP\n"); break;
+        case 0x38: break;
         case 0x39: printf("DAD  SP\n"); break;
         case 0x3a: printf("LDA  adr\n"); (*pc) += 2; break;
         case 0x3b: printf("DCX	SP\n"); break;
@@ -210,7 +221,7 @@ uint8_t disassemble_opcode(unsigned char * mem, uint16_t * pc) {
         case 0xc8: printf("RZ\n"); break;
         case 0xc9: printf("RET\n"); break;
         case 0xca: printf("JZ   adr\n"); (*pc) += 2; break;
-        case 0xcb: printf("NOP\n"); break;
+        case 0xcb: break;
         case 0xcc: printf("CZ   adr\n"); (*pc) += 2; break;
         case 0xcd: printf("CALL adr\n"); (*pc) += 2; break;
         case 0xce: printf("ACI  0x%02x\n", op[1]); (*pc) += 1; break;
@@ -224,11 +235,11 @@ uint8_t disassemble_opcode(unsigned char * mem, uint16_t * pc) {
         case 0xd6: printf("SUI  0x%02x\n", op[1]); (*pc) += 1; break;
         case 0xd7: printf("RST  2\n"); break;
         case 0xd8: printf("RC\n"); break;
-        case 0xd9: printf("NOP\n"); break;
+        case 0xd9: break;
         case 0xda: printf("JC   adr\n"); (*pc) += 2; break;
         case 0xdb: printf("IN   0x%02x\n", op[1]); (*pc) += 1; break;
         case 0xdc: printf("CC   adr\n"); (*pc) += 2; break;
-        case 0xdd: printf("NOP\n"); break;
+        case 0xdd: break;
         case 0xde: printf("SBI  0x%02x\n", op[1]); (*pc) += 1; break;
         case 0xdf: printf("RST  3\n"); break;
         case 0xe0: printf("RPO\n"); break;
@@ -244,7 +255,7 @@ uint8_t disassemble_opcode(unsigned char * mem, uint16_t * pc) {
         case 0xea: printf("JPE  adr\n"); (*pc) += 2; break;
         case 0xeb: printf("XCHX\n"); break;
         case 0xec: printf("CPE  adr\n"); (*pc) += 2; break;
-        case 0xed: printf("NOP\n"); break;
+        case 0xed: break;
         case 0xee: printf("XRI  0x%02x\n", op[1]); (*pc) += 1; break;
         case 0xef: printf("RST  5\n"); break;
         case 0xf0: printf("RP\n"); break;
@@ -260,25 +271,11 @@ uint8_t disassemble_opcode(unsigned char * mem, uint16_t * pc) {
         case 0xfa: printf("JM   adr\n"); (*pc) += 2; break;
         case 0xfb: printf("EI\n"); break;
         case 0xfc: printf("CM   adr\n"); (*pc) += 2; break;
-        case 0xfd: printf("NOP\n"); break;
+        case 0xfd: break;
         case 0xfe: printf("CPI  0x%02x\n", op[1]); (*pc) += 1; break;
         case 0xff: printf("RST  7\n"); break;
         default: _unimpl(*op); return 0;
     }
     (*pc) += 1;
     return 1;
-}
-
-int disassemble(unsigned char * rom, uint16_t size) {
-    uint16_t counter      = 0;
-    uint16_t instructions = 0;
-    uint8_t result = 0;
-    while(counter < size) {
-        result = disassemble_opcode(rom, &counter);
-        if(result == 0) {
-            return instructions;
-        }
-        instructions += 1;
-    }
-    return instructions;
 }

@@ -6,7 +6,7 @@
 #ifndef DISASSEMBLER
 #define DISASSEMBLER
 
-int disassemble_opcode(unsigned char *, uint16_t);
+uint8_t disassemble_opcode(unsigned char *, uint16_t *);
 int disassemble(unsigned char *, uint16_t);
 
 #endif
