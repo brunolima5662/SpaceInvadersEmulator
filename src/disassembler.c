@@ -148,6 +148,7 @@ int disassemble(unsigned char * rom, uint16_t size) {
             case 0x85: printf("ADD  L\n"); break;
             case 0x86: printf("ADD  M\n"); break;
             case 0x87: printf("ADD	A\n"); break;
+            case 0x87: printf("ADD  A\n"); break;
             case 0x88: printf("ADC  B\n"); break;
             case 0x89: printf("ADC  C\n"); break;
             case 0x8a: printf("ADC  D\n"); break;
