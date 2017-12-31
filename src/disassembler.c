@@ -4,21 +4,26 @@ void _unimpl(unsigned char opcode) {
     printf("OPCODE NOT IMPLEMENTED: 0x%02x\n", opcode);
 }
 
+int disassemble_opcode(unsigned char * mem, uint16_t pc) {
+    unsigned char * op = &mem[pc];
+    return disassemble(op, 1);
+}
+
 int disassemble(unsigned char * rom, uint16_t size) {
     uint16_t counter      = 0;
     uint16_t instructions = 0;
-    unsigned char * tmp   = NULL;
+    unsigned char * op    = NULL;
     while(counter < size) {
         // skip unneeded cpu operations for space invaders
-        tmp = &rom[counter];
-        switch(*tmp) {
+        op = &rom[counter];
+        switch(*op) {
             case 0x00: printf("NOP\n"); break;
-            case 0x01: printf("LXI  B 0x%02x,0x%02x\n", tmp[2], tmp[1]); counter += 2; break;
+            case 0x01: printf("LXI  B 0x%02x,0x%02x\n", op[2], op[1]); counter += 2; break;
             case 0x02: printf("STAX B\n"); break;
             case 0x03: printf("INX  B\n"); break;
             case 0x04: printf("INR  B\n"); break;
             case 0x05: printf("DCR  B\n"); break;
-            case 0x06: printf("MVI  B 0x%02x\n", tmp[1]); counter += 1; break;
+            case 0x06: printf("MVI  B 0x%02x\n", op[1]); counter += 1; break;
             case 0x07: printf("RLC\n"); break;
             case 0x08: printf("NOP\n"); break;
             case 0x09: printf("DAD  B\n"); break;
@@ -26,15 +31,15 @@ int disassemble(unsigned char * rom, uint16_t size) {
             case 0x0b: printf("DCX  B\n"); break;
             case 0x0c: printf("INR  C\n"); break;
             case 0x0d: printf("DCR  C\n"); break;
-            case 0x0e: printf("MVI  C 0x%02x\n", tmp[1]); counter += 1; break;
+            case 0x0e: printf("MVI  C 0x%02x\n", op[1]); counter += 1; break;
             case 0x0f: printf("RRC\n"); break;
             case 0x10: printf("NOP\n"); break;
-            case 0x11: printf("LXI  D 0x%02x,0x%02x\n", tmp[2], tmp[1]); counter += 2; break;
+            case 0x11: printf("LXI  D 0x%02x,0x%02x\n", op[2], op[1]); counter += 2; break;
             case 0x12: printf("STAX D\n"); break;
             case 0x13: printf("INX  D\n"); break;
             case 0x14: printf("INR  D\n"); break;
             case 0x15: printf("DCR  D\n"); break;
-            case 0x16: printf("MVI  D 0x%02x\n", tmp[1]); counter += 1; break;
+            case 0x16: printf("MVI  D 0x%02x\n", op[1]); counter += 1; break;
             case 0x17: printf("RAL\n"); break;
             case 0x18: printf("NOP\n"); break;
             case 0x19: printf("DAD  D\n"); break;
@@ -42,15 +47,15 @@ int disassemble(unsigned char * rom, uint16_t size) {
             case 0x1b: printf("DCX  D\n"); break;
             case 0x1c: printf("INR  E\n"); break;
             case 0x1d: printf("DCR  E\n"); break;
-            case 0x1e: printf("MVI	E 0x%02x\n", tmp[1]); counter += 1; break;
+            case 0x1e: printf("MVI	E 0x%02x\n", op[1]); counter += 1; break;
             case 0x1f: printf("RAR\n"); break;
             case 0x20: printf("RIM\n"); break;
-            case 0x21: printf("LXI  H 0x%02x,0x%02x\n", tmp[2], tmp[1]); counter += 2; break;
+            case 0x21: printf("LXI  H 0x%02x,0x%02x\n", op[2], op[1]); counter += 2; break;
             case 0x22: printf("SHLD adr\n"); counter += 2; break;
             case 0x23: printf("INX  H\n"); break;
             case 0x24: printf("INR  H\n"); break;
             case 0x25: printf("DCR  H\n"); break;
-            case 0x26: printf("MVI  H 0x%02x\n", tmp[1]); counter += 1; break;
+            case 0x26: printf("MVI  H 0x%02x\n", op[1]); counter += 1; break;
             case 0x27: printf("DAA\n"); break;
             case 0x28: printf("NOP\n"); break;
             case 0x29: printf("DAD  H\n"); break;
@@ -58,15 +63,15 @@ int disassemble(unsigned char * rom, uint16_t size) {
             case 0x2b: printf("DCX  H\n"); break;
             case 0x2c: printf("INR  L\n"); break;
             case 0x2d: printf("DCR	L\n"); break;
-            case 0x2e: printf("MVI  L 0x%02x\n", tmp[1]); counter += 1; break;
+            case 0x2e: printf("MVI  L 0x%02x\n", op[1]); counter += 1; break;
             case 0x2f: printf("CMA\n"); break;
             case 0x30: printf("SIM\n"); break;
-            case 0x31: printf("LXI  SP 0x%02x,0x%02x\n", tmp[2], tmp[1]); counter += 2; break;
+            case 0x31: printf("LXI  SP 0x%02x,0x%02x\n", op[2], op[1]); counter += 2; break;
             case 0x32: printf("STA  adr\n"); counter += 2; break;
             case 0x33: printf("INX	SP\n"); break;
             case 0x34: printf("INR  M\n"); break;
             case 0x35: printf("DCR  M\n"); break;
-            case 0x36: printf("MVI  M 0x%02x\n", tmp[1]); counter += 1; break;
+            case 0x36: printf("MVI  M 0x%02x\n", op[1]); counter += 1; break;
             case 0x37: printf("STC\n"); break;
             case 0x38: printf("NOP\n"); break;
             case 0x39: printf("DAD  SP\n"); break;
@@ -74,7 +79,7 @@ int disassemble(unsigned char * rom, uint16_t size) {
             case 0x3b: printf("DCX	SP\n"); break;
             case 0x3c: printf("INR  A\n"); break;
             case 0x3d: printf("DCR  A\n"); break;
-            case 0x3e: printf("MVI  A 0x%02x\n", tmp[1]); counter += 1; break;
+            case 0x3e: printf("MVI  A 0x%02x\n", op[1]); counter += 1; break;
             case 0x3f: printf("CMC\n"); break;
             case 0x40: printf("MOV  B B\n"); break;
             case 0x41: printf("MOV  B C\n"); break;
@@ -207,10 +212,10 @@ int disassemble(unsigned char * rom, uint16_t size) {
             case 0xc0: printf("RNZ\n"); break;
             case 0xc1: printf("POP  B\n"); break;
             case 0xc2: printf("JNZ  adr\n"); counter += 2; break;
-            case 0xc3: printf("JMP  0x%02x%02x\n", tmp[2], tmp[1]); counter += 2; break;
+            case 0xc3: printf("JMP  0x%02x%02x\n", op[2], op[1]); counter += 2; break;
             case 0xc4: printf("CNZ  adr\n"); counter += 2; break;
             case 0xc5: printf("PUSH B\n"); break;
-            case 0xc6: printf("ADI  0x%02x\n", tmp[1]); counter += 1; break;
+            case 0xc6: printf("ADI  0x%02x\n", op[1]); counter += 1; break;
             case 0xc7: printf("RST  0\n"); break;
             case 0xc8: printf("RZ\n"); break;
             case 0xc9: printf("RET\n"); break;
@@ -218,23 +223,23 @@ int disassemble(unsigned char * rom, uint16_t size) {
             case 0xcb: printf("NOP\n"); break;
             case 0xcc: printf("CZ   adr\n"); counter += 2; break;
             case 0xcd: printf("CALL adr\n"); counter += 2; break;
-            case 0xce: printf("ACI  0x%02x\n", tmp[1]); counter += 1; break;
+            case 0xce: printf("ACI  0x%02x\n", op[1]); counter += 1; break;
             case 0xcf: printf("RST  1\n"); break;
             case 0xd0: printf("RNC\n"); break;
             case 0xd1: printf("POP  D\n"); break;
             case 0xd2: printf("JNC  adr\n"); counter += 2; break;
-            case 0xd3: printf("OUT  0x%02x\n", tmp[1]); counter += 1; break;
+            case 0xd3: printf("OUT  0x%02x\n", op[1]); counter += 1; break;
             case 0xd4: printf("CNC  adr\n"); counter += 2; break;
             case 0xd5: printf("PUSH D\n"); break;
-            case 0xd6: printf("SUI  0x%02x\n", tmp[1]); counter += 1; break;
+            case 0xd6: printf("SUI  0x%02x\n", op[1]); counter += 1; break;
             case 0xd7: printf("RST  2\n"); break;
             case 0xd8: printf("RC\n"); break;
             case 0xd9: printf("NOP\n"); break;
             case 0xda: printf("JC   adr\n"); counter += 2; break;
-            case 0xdb: printf("IN   0x%02x\n", tmp[1]); counter += 1; break;
+            case 0xdb: printf("IN   0x%02x\n", op[1]); counter += 1; break;
             case 0xdc: printf("CC   adr\n"); counter += 2; break;
             case 0xdd: printf("NOP\n"); break;
-            case 0xde: printf("SBI  0x%02x\n", tmp[1]); counter += 1; break;
+            case 0xde: printf("SBI  0x%02x\n", op[1]); counter += 1; break;
             case 0xdf: printf("RST  3\n"); break;
             case 0xe0: printf("RPO\n"); break;
             case 0xe1: printf("POP  H\n"); break;
@@ -242,7 +247,7 @@ int disassemble(unsigned char * rom, uint16_t size) {
             case 0xe3: printf("XTHL\n"); break;
             case 0xe4: printf("CPO  adr\n"); counter += 2; break;
             case 0xe5: printf("PUSH H\n"); break;
-            case 0xe6: printf("ANI  0x%02x\n", tmp[1]); counter += 1; break;
+            case 0xe6: printf("ANI  0x%02x\n", op[1]); counter += 1; break;
             case 0xe7: printf("RST  4\n"); break;
             case 0xe8: printf("RPE\n"); break;
             case 0xe9: printf("PCHL\n"); break;
@@ -250,7 +255,7 @@ int disassemble(unsigned char * rom, uint16_t size) {
             case 0xeb: printf("XCHX\n"); break;
             case 0xec: printf("CPE  adr\n"); counter += 2; break;
             case 0xed: printf("NOP\n"); break;
-            case 0xee: printf("XRI  0x%02x\n", tmp[1]); counter += 1; break;
+            case 0xee: printf("XRI  0x%02x\n", op[1]); counter += 1; break;
             case 0xef: printf("RST  5\n"); break;
             case 0xf0: printf("RP\n"); break;
             case 0xf1: printf("POP  PSW\n"); break;
@@ -258,7 +263,7 @@ int disassemble(unsigned char * rom, uint16_t size) {
             case 0xf3: printf("DI\n"); break;
             case 0xf4: printf("CP   adr\n"); counter += 2; break;
             case 0xf5: printf("PUSH PSW\n"); break;
-            case 0xf6: printf("ORI  0x%02x\n", tmp[1]); counter += 1; break;
+            case 0xf6: printf("ORI  0x%02x\n", op[1]); counter += 1; break;
             case 0xf7: printf("RST  6\n"); break;
             case 0xf8: printf("RM\n"); break;
             case 0xf9: printf("SPHL\n"); break;
@@ -266,9 +271,9 @@ int disassemble(unsigned char * rom, uint16_t size) {
             case 0xfb: printf("EI\n"); break;
             case 0xfc: printf("CM   adr\n"); counter += 2; break;
             case 0xfd: printf("NOP\n"); break;
-            case 0xfe: printf("CPI  0x%02x\n", tmp[1]); counter += 1; break;
+            case 0xfe: printf("CPI  0x%02x\n", op[1]); counter += 1; break;
             case 0xff: printf("RST  7\n"); break;
-            default: _unimpl(*tmp); return instructions;
+            default: _unimpl(*op); return instructions;
         }
         instructions += 1;
         counter += 1;
