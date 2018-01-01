@@ -10,7 +10,7 @@
 #define RAM_MIRROR_START 0x4000
 
 #define VIDEO_X 256 // in pixels
-#define VIDEO_Y 224 // in pixes
+#define VIDEO_Y 224 // in pixels
 #define VIDEO_SCANLINE 32 // in bytes
 #define VIDEO_HZ 60 // in Hz
 
@@ -27,7 +27,6 @@ typedef struct machine {
     uint8_t z;
     uint8_t s;
     uint8_t p;
-    uint8_t ac;
     uint8_t cy;
     unsigned char memory[MEMORY_SIZE];
 } machine_t;
