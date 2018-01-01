@@ -86,7 +86,7 @@ uint8_t emulate_instruction(machine_t * state) {
             update_flags(state, (uint16_t)state->d, 0x07);
             break;
         case 0x16: state->d = op[1]; state->pc += 1; break;
-        case 0x17: 
+        case 0x17:
         	tmp = state->cy;
         	state->cy = ((state->a  >> 7) & 0x01);
             state->a  = (state->a << 1) | tmp;
@@ -104,34 +104,46 @@ uint8_t emulate_instruction(machine_t * state) {
         	state->d = (uint8_t)(result >> 8);
         	state->e = (uint8_t)(result & 0xff);
 			break;
-        case 0x1c: 
+        case 0x1c:
         	result = (uint16_t)state->e + 1;
         	state->e = (uint8_t)(result & 0xff);
         	update_flags(state, result, 0x07);
 			break;
-        case 0x1d: 
+        case 0x1d:
         	result = (uint16_t)state->e - 1;
         	state->e = (uint8_t)(result & 0xff);
         	update_flags(state, result, 0x07);
         break;
         case 0x1e: state->e = op[1]; state->pc += 1; break;
-        case 0x1f: 
+        case 0x1f:
         	state->cy = state->a & 0x01;
         	state->a = (state->a & 0x80) | (state->a >> 1);
         	break;
         case 0x20: break;
         case 0x21: state->h = op[2]; state->l = op[1]; state->pc += 2; break;
         case 0x22:
-        	result = (op[2] << 8) | op[1];
+        	result = (op[1] << 8) | (uint16_t)op[2];
         	state->memory[result] = state-> l;
         	state->memory[result + 1] = state->h;
-			state->pc += 2; 
+			state->pc += 2;
 			break;
-        case 0x23: printf("INX  H\n"); break;
-        case 0x24: printf("INR  H\n"); break;
-        case 0x25: printf("DCR  H\n"); break;
-        case 0x26: printf("MVI  H 0x%02x\n", op[1]); state->pc += 1; break;
-        case 0x27: printf("DAA\n"); break;
+        case 0x23:
+            result   = ((state->h << 8) | state->l) + 1;
+            state->h = (uint8_t)(result >> 8);
+            state->l = (uint8_t)(result & 0xff);
+            break;
+        case 0x24:
+            result = (uint16_t)state->h + 1;
+            state->h = (uint8_t)(result & 0xff);
+            update_flags(state, result, 0x07);
+            break;
+        case 0x25:
+            result = (uint16_t)state->h - 1;
+            state->h = (uint8_t)(result & 0xff);
+            update_flags(state, result, 0x07);
+            break;
+        case 0x26: state->h = op[1]; state->pc += 1; break;
+        case 0x27: break;
         case 0x28: break;
         case 0x29:
             result = ((state->h << 8) | state->l) + ((state->h << 8) | state->l);
@@ -139,20 +151,51 @@ uint8_t emulate_instruction(machine_t * state) {
             state->l = (uint8_t)(result & 0xff);
             update_flags(state, result, 0x08);
             break;
-        case 0x2a: printf("LHLD adr\n"); state->pc += 2; break;
-        case 0x2b: printf("DCX  H\n"); break;
-        case 0x2c: printf("INR  L\n"); break;
-        case 0x2d: printf("DCR	L\n"); break;
-        case 0x2e: printf("MVI  L 0x%02x\n", op[1]); state->pc += 1; break;
-        case 0x2f: printf("CMA\n"); break;
-        case 0x30: printf("SIM\n"); break;
-        case 0x31: printf("LXI  SP 0x%02x,0x%02x\n", op[2], op[1]); state->pc += 2; break;
-        case 0x32: printf("STA  adr\n"); state->pc += 2; break;
-        case 0x33: printf("INX	SP\n"); break;
-        case 0x34: printf("INR  M\n"); break;
-        case 0x35: printf("DCR  M\n"); break;
-        case 0x36: printf("MVI  M 0x%02x\n", op[1]); state->pc += 1; break;
-        case 0x37: printf("STC\n"); break;
+        case 0x2a:
+            result = (op[1] << 8) | (uint16_t)op[2];
+            state->l = state->memory[result];
+            state->h = state->memory[result + 1];
+            state->pc += 2;
+            break;
+        case 0x2b:
+            result   = ((state->h << 8) | (uint16_t)state->l) - 1;
+            state->h = (uint8_t)(result >> 8);
+            state->l = (uint8_t)(result & 0xff);
+            break;
+        case 0x2c:
+            result = (uint16_t)state->l + 1;
+            state->l = (uint8_t)(result & 0xff);
+            update_flags(state, result, 0x07);
+            break;
+        case 0x2d:
+            result = (uint16_t)state->l - 1;
+            state->l = (uint8_t)(result & 0xff);
+            update_flags(state, result, 0x07);
+            break;
+        case 0x2e: state->l = op[1]; state->pc += 1; break;
+        case 0x2f: state->a = !state->a; break;
+        case 0x30: break;
+        case 0x31: state->sp = (op[1] << 8) | (uint16_t)op[2]; state->pc += 2; break;
+        case 0x32:
+            result = (op[1] << 8) | (uint16_t)op[2];
+            state->memory[result] = state->a;
+            break;
+        case 0x33: state->sp += 1; break;
+        case 0x34:
+            result = (uint16_t)state->memory[(state->h << 8) | (uint16_t)state->l] + 1;
+            state->memory[(state->h << 8) | (uint16_t)state->l] = (uint8_t)(result & 0xff);
+            update_flags(state, result, 0x07);
+            break;
+        case 0x35:
+            result = (uint16_t)state->memory[(state->h << 8) | (uint16_t)state->l] - 1;
+            state->memory[(state->h << 8) | (uint16_t)state->l] = (uint8_t)(result & 0xff);
+            update_flags(state, result, 0x07);
+            break;
+        case 0x36:
+            state->memory[(state->h << 8) | (uint16_t)state->l] = op[1];
+            state->pc += 1;
+            break;
+        case 0x37: state->cy = 1; break;
         case 0x38: break;
         case 0x39:
             result = ((state->h << 8) | state->l) + state->sp;
@@ -160,12 +203,21 @@ uint8_t emulate_instruction(machine_t * state) {
             state->l = (uint8_t)(result & 0xff);
             update_flags(state, result, 0x08);
             break;
-        case 0x3a: printf("LDA  adr\n"); state->pc += 2; break;
-        case 0x3b: printf("DCX	SP\n"); break;
-        case 0x3c: printf("INR  A\n"); break;
-        case 0x3d: printf("DCR  A\n"); break;
-        case 0x3e: printf("MVI  A 0x%02x\n", op[1]); state->pc += 1; break;
-        case 0x3f: printf("CMC\n"); break;
+        case 0x3a:
+            state->a = state->memory[(op[1] << 8) | (uint16_t)op[2]];
+            state->pc += 2;
+            break;
+        case 0x3b: state->sp -= 1; break;
+        case 0x3c:
+            result = (uint16_t)state->a += 1;
+            state->a = (uint8_t)(result & 0xff);
+            update_flags(state, result, 0x07); break;
+        case 0x3d:
+            result = (uint16_t)state->a -= 1;
+            state->a = (uint8_t)(result & 0xff);
+            update_flags(state, result, 0x07); break;
+        case 0x3e: state->a = op[1]; state->pc += 1; break;
+        case 0x3f: state->cy = !state->cy; break;
         case 0x40: printf("MOV  B B\n"); break;
         case 0x41: printf("MOV  B C\n"); break;
         case 0x42: printf("MOV  B D\n"); break;
