@@ -12,6 +12,7 @@ void update_flags(machine_t * state, uint16_t value, uint8_t mask) {
 }
 
 uint8_t emulate_instruction(machine_t * state) {
+	uint8_t  tmp;
     uint16_t result;
     unsigned char * op = &state->memory[state->pc];
     switch(*op) {
@@ -52,11 +53,13 @@ uint8_t emulate_instruction(machine_t * state) {
             state->c = (uint8_t)(result & 0xff);
             break;
         case 0x0c:
-            state->c += 1;
+            result = (uint16_t)state->c + 1;
+        	state->c = (uint8_t)(result & 0xff);
             update_flags(state, (uint16_t)state->c, 0x07);
             break;
         case 0x0d:
-            state->c -= 1;
+            result = (uint16_t)state->c + 1;
+        	state->c = (uint8_t)(result & 0xff);
             update_flags(state, (uint16_t)state->c, 0x07);
             break;
         case 0x0e: state->c = op[1]; state->pc += 1; break;
@@ -73,15 +76,21 @@ uint8_t emulate_instruction(machine_t * state) {
             state->e = (uint8_t)(result & 0xff);
             break;
         case 0x14:
-            state->d += 1;
+            result = (uint16_t) state->d + 1;
+        	state->d =  (uint8_t)(result & 0xff);
             update_flags(state, (uint16_t)state->d, 0x07);
             break;
         case 0x15:
-            state->d -= 1;
+            result = (uint16_t)state->d - 1;
+        	state->d =  (uint8_t)(result & 0xff);
             update_flags(state, (uint16_t)state->d, 0x07);
             break;
         case 0x16: state->d = op[1]; state->pc += 1; break;
-        case 0x17: printf("RAL\n"); break;
+        case 0x17: 
+        	tmp = state->cy;
+        	state->cy = ((state->a  >> 7) & 0x01);
+            state->a  = (state->a << 1) | tmp;
+            break;
         case 0x18: break;
         case 0x19:
             result = ((state->h << 8) | state->l) + ((state->d << 8) | state->e);
@@ -89,15 +98,35 @@ uint8_t emulate_instruction(machine_t * state) {
             state->l = (uint8_t)(result & 0xff);
             update_flags(state, result, 0x08);
             break;
-        case 0x1a: printf("LDAX D\n"); break;
-        case 0x1b: printf("DCX  D\n"); break;
-        case 0x1c: printf("INR  E\n"); break;
-        case 0x1d: printf("DCR  E\n"); break;
-        case 0x1e: printf("MVI	E 0x%02x\n", op[1]); state->pc += 1; break;
-        case 0x1f: printf("RAR\n"); break;
-        case 0x20: printf("RIM\n"); break;
-        case 0x21: printf("LXI  H 0x%02x,0x%02x\n", op[2], op[1]); state->pc += 2; break;
-        case 0x22: printf("SHLD adr\n"); state->pc += 2; break;
+        case 0x1a: state->a = state->memory[(state->d << 8) | state->e]; break;
+        case 0x1b:
+        	result = ((state->d << 8) | state->e) - 1;
+        	state->d = (uint8_t)(result >> 8);
+        	state->e = (uint8_t)(result & 0xff);
+			break;
+        case 0x1c: 
+        	result = (uint16_t)state->e + 1;
+        	state->e = (uint8_t)(result & 0xff);
+        	update_flags(state, result, 0x07);
+			break;
+        case 0x1d: 
+        	result = (uint16_t)state->e - 1;
+        	state->e = (uint8_t)(result & 0xff);
+        	update_flags(state, result, 0x07);
+        break;
+        case 0x1e: state->e = op[1]; state->pc += 1; break;
+        case 0x1f: 
+        	state->cy = state->a & 0x01;
+        	state->a = (state->a & 0x80) | (state->a >> 1);
+        	break;
+        case 0x20: break;
+        case 0x21: state->h = op[2]; state->l = op[1]; state->pc += 2; break;
+        case 0x22:
+        	result = (op[2] << 8) | op[1];
+        	state->memory[result] = state-> l;
+        	state->memory[result + 1] = state->h;
+			state->pc += 2; 
+			break;
         case 0x23: printf("INX  H\n"); break;
         case 0x24: printf("INR  H\n"); break;
         case 0x25: printf("DCR  H\n"); break;
