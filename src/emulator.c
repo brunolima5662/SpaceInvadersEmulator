@@ -14,6 +14,7 @@ void update_flags(machine_t * state, uint16_t value, uint8_t mask) {
 uint8_t emulate_instruction(machine_t * state) {
 	uint8_t  tmp;
     uint16_t result;
+    uint8_t skip_increment = 0;
     unsigned char * op = &state->memory[state->pc];
     switch(*op) {
         case 0x00: break;
@@ -346,11 +347,36 @@ uint8_t emulate_instruction(machine_t * state) {
         case 0xbd: printf("CMP  L\n"); break;
         case 0xbe: printf("CMP  M\n"); break;
         case 0xbf: printf("CMP  A\n"); break;
-        case 0xc0: printf("RNZ\n"); break;
-        case 0xc1: printf("POP  B\n"); break;
-        case 0xc2: printf("JNZ  adr\n"); state->pc += 2; break;
-        case 0xc3: printf("JMP  0x%02x%02x\n", op[2], op[1]); state->pc += 2; break;
-        case 0xc4: printf("CNZ  adr\n"); state->pc += 2; break;
+        case 0xc0:
+        	if(!state->z) {
+        		state->pc = (state->memory[state->sp + 1] << 8) | (state->memory[state->sp] & 0xff);
+        		state->sp += 2;
+        		skip_increment = 1;
+        	}
+			break;
+        case 0xc1: 
+        	state->c = state->memory[state->sp];
+        	state->b = state->memory[state->sp + 1];
+        	state->sp = state->sp + 2;
+			break;
+        case 0xc2:
+        	if(!state->z) {
+            	state->pc = (op[1] << 8) | (uint16_t)op[2] ;
+            	skip_increment = 1;
+            }
+			break;
+        case 0xc3:
+			state->pc = (op[1] << 8) | (uint16_t)op[2]; 
+			skip_increment = 1;
+			break;
+        case 0xc4: 
+        	result = state->pc + 38;
+        	state->memory[state->sp - 1] = (uint8_t)(result >> 8);
+        	state->memory[state->sp - 2] = (result & 0xff);
+        	state->sp -= 2;
+        	state->pc = (op[1] << 8) | (uint16_t)op[2];
+        	skip_increment = 1;
+			break;
         case 0xc5: printf("PUSH B\n"); break;
         case 0xc6: printf("ADI  0x%02x\n", op[1]); state->pc += 1; break;
         case 0xc7: printf("RST  0\n"); break;
@@ -412,6 +438,7 @@ uint8_t emulate_instruction(machine_t * state) {
         case 0xff: printf("RST  7\n"); break;
         default: _unimpl(*op); return 0;
     }
-    state->pc += 1;
+    if(!skip_increment)
+    	state->pc += 1;
     return 1;
 }
