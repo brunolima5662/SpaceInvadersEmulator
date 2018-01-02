@@ -14,7 +14,6 @@ void update_flags(machine_t * state, uint16_t value, uint8_t mask) {
 uint8_t emulate_instruction(machine_t * state) {
 	uint8_t  tmp;
     uint16_t result;
-    uint8_t skip_increment = 0;
     unsigned char * op = &state->memory[state->pc];
     switch(*op) {
         case 0x00: break;
@@ -441,57 +440,276 @@ uint8_t emulate_instruction(machine_t * state) {
             state->sp -= 2;
             state->pc = 0x08;
             break;
-        case 0xd0: printf("RNC\n"); break;
-        case 0xd1: printf("POP  D\n"); break;
-        case 0xd2: printf("JNC  adr\n"); state->pc += 2; break;
-        case 0xd3: printf("OUT  0x%02x\n", op[1]); state->pc += 1; break;
-        case 0xd4: printf("CNC  adr\n"); state->pc += 2; break;
-        case 0xd5: printf("PUSH D\n"); break;
-        case 0xd6: printf("SUI  0x%02x\n", op[1]); state->pc += 1; break;
-        case 0xd7: printf("RST  2\n"); break;
-        case 0xd8: printf("RC\n"); break;
+        case 0xd0:
+            if(state->cy == 0) {
+                state->pc = (state->memory[state->sp + 1] << 8) | (uint8_t)state->memory[state->sp]);
+                state->sp += 2;
+            }
+            break;
+        case 0xd1:
+            state->d = state->memory[state->sp + 1];
+            state->e = state->memory[state->sp];
+            state->sp += 2;
+            break;
+        case 0xd2:
+            if(state->cy == 0)
+                state->pc = (op[2] << 8) | op[1];
+            else
+                state->pc += 2;
+            break;
+        case 0xd3: state->pc += 1; break;
+        case 0xd4:
+            if(state->cy == 0) {
+                result = state->pc + 2;
+                state->memory[state->sp - 1] = (uint8_t)(result >> 8);
+                state->memory[state->sp - 2] = (uint8_t)(result & 0xff);
+                state->sp -= 2;
+                state->pc = (op[2] << 8) | op[1];
+            }
+            else {
+                state->pc += 2;
+            }
+            break;
+        case 0xd5:
+            state->memory[state->sp - 2] = state->e;
+            state->memory[state->sp - 1] = state->d;
+            state->sp -= 2;
+            break;
+        case 0xd6:
+            result   = (uint16_t)state->a - (uint16_t)op[1];
+            state->a = (uint8_t)(result & 0xff);
+            update_flags(state, result, 0x0f);
+            state->pc += 1; break;
+        case 0xd7:
+            state->memory[state->sp - 1] = (uint8_t)(state->pc >> 8);
+            state->memory[state->sp - 2] = (uint8_t)(state->pc & 0xff);
+            state->sp -= 2;
+            state->pc = 0x10;
+            break;
+        case 0xd8:
+            if(state->cy != 0) {
+                state->pc = (state->memory[state->sp + 1] << 8) | (uint8_t)state->memory[state->sp]);
+                state->sp += 2;
+            }
+            break;
         case 0xd9: break;
-        case 0xda: printf("JC   adr\n"); state->pc += 2; break;
-        case 0xdb: printf("IN   0x%02x\n", op[1]); state->pc += 1; break;
-        case 0xdc: printf("CC   adr\n"); state->pc += 2; break;
+        case 0xda:
+            if(state->cy != 0)
+                state->pc = (op[2] << 8) | op[1];
+            else
+                state->pc += 2;
+            break;
+        case 0xdb: state->pc += 1; break;
+        case 0xdc:
+            if(state->cy != 0) {
+                result = state->pc + 2;
+                state->memory[state->sp - 1] = (uint8_t)(result >> 8);
+                state->memory[state->sp - 2] = (uint8_t)(result & 0xff);
+                state->sp -= 2;
+                state->pc = (op[2] << 8) | op[1];
+            }
+            else {
+                state->pc += 2;
+            }
+            break;
         case 0xdd: break;
-        case 0xde: printf("SBI  0x%02x\n", op[1]); state->pc += 1; break;
-        case 0xdf: printf("RST  3\n"); break;
-        case 0xe0: printf("RPO\n"); break;
-        case 0xe1: printf("POP  H\n"); break;
-        case 0xe2: printf("JPO  adr\n"); state->pc += 2; break;
-        case 0xe3: printf("XTHL\n"); break;
-        case 0xe4: printf("CPO  adr\n"); state->pc += 2; break;
-        case 0xe5: printf("PUSH H\n"); break;
-        case 0xe6: printf("ANI  0x%02x\n", op[1]); state->pc += 1; break;
-        case 0xe7: printf("RST  4\n"); break;
-        case 0xe8: printf("RPE\n"); break;
-        case 0xe9: printf("PCHL\n"); break;
-        case 0xea: printf("JPE  adr\n"); state->pc += 2; break;
-        case 0xeb: printf("XCHX\n"); break;
-        case 0xec: printf("CPE  adr\n"); state->pc += 2; break;
+        case 0xde:
+            result = (uint16_t)state_>a - (uint16_t)op[1] - (uint16_t)state->cy;
+            state->a = (uint8_t)(result & 0xff);
+            update_flags(state, result, 0x0f);
+            state->pc += 1; break;
+        case 0xdf:
+            state->memory[state->sp - 1] = (uint8_t)(state->pc >> 8);
+            state->memory[state->sp - 2] = (uint8_t)(state->pc & 0xff);
+            state->sp -= 2;
+            state->pc = 0x18;
+            break;
+        case 0xe0:
+            if(state->p == 0) {
+                state->pc = (state->memory[state->sp + 1] << 8) | (uint8_t)state->memory[state->sp]);
+                state->sp += 2;
+            }
+            break;
+        case 0xe1:
+            state->l = state->memory[state->sp];
+            state->h = state->memory[state->sp + 1];
+            state->sp += 2;
+            break;
+        case 0xe2:
+            if(state->p == 0)
+                state->pc = (op[2] << 8) | op[1]);
+            else
+                state->pc += 2;
+            break;
+        case 0xe3:
+            result = (state->memory[state->sp] << 8) || state->memory[state->sp + 1];
+            state->memory[state->sp] = state->l;
+            state->memory[state->sp + 1] = state->h;
+            state->l = (uint8_t)(result >> 8);
+            state->h = (uint8_t)(result & 0xff);
+            break;
+        case 0xe4:
+            if(state->p == 0) {
+                result = state->pc + 2;
+                state->memory[state->sp - 1] = (uint8_t)(result >> 8);
+                state->memory[state->sp - 2] = (uint8_t)(result & 0xff);
+                state->sp -= 2;
+                state->pc = (op[2] << 8) | op[1];
+            }
+            else {
+                state->pc += 2;
+            }
+            break;
+        case 0xe5:
+            state->memory[state->sp - 2] = state->l;
+            state->memory[state->sp - 1] = state->h;
+            state->sp -= 2;
+            break;
+        case 0xe6:
+            result = state->a & op[1];
+            state->a = (uint8_t)(result & 0xff);
+            update_flags(state, result, 0x0f);
+            state->pc += 1;
+            break;
+        case 0xe7:
+            state->memory[state->sp - 1] = (uint8_t)(state->pc >> 8);
+            state->memory[state->sp - 2] = (uint8_t)(state->pc & 0xff);
+            state->sp -= 2;
+            state->pc = 0x20;
+            break;
+        case 0xe8:
+            if(state->p == 1) {
+                state->pc = (state->memory[state->sp + 1] << 8) | (uint8_t)state->memory[state->sp]);
+                state->sp += 2;
+            }
+            break;
+        case 0xe9:
+            state->pc = (state->h << 8) | state->l;
+            break;
+        case 0xea:
+            if(state->p == 1)
+                state->pc = (op[2] << 8) | op[1]
+            else
+                state->pc += 2;
+            break;
+        case 0xeb:
+            result = (state->h << 8) || state->l;
+            state->h = state->d;
+            state->l = state->e;
+            state->d = (uint8_t)(result >> 8);
+            state->e = (uint8_t)(result & 0xff);
+            break;
+        case 0xec:
+            if(state->p == 1) {
+                result = state->pc + 2;
+                state->memory[state->sp - 1] = (uint8_t)(result >> 8);
+                state->memory[state->sp - 2] = (uint8_t)(result & 0xff);
+                state->sp -= 2;
+                state->pc = (op[2] << 8) | op[1];
+            }
+            else {
+                state->pc += 2;
+            }
+            break;
         case 0xed: break;
-        case 0xee: printf("XRI  0x%02x\n", op[1]); state->pc += 1; break;
-        case 0xef: printf("RST  5\n"); break;
-        case 0xf0: printf("RP\n"); break;
-        case 0xf1: printf("POP  PSW\n"); break;
-        case 0xf2: printf("JP   adr\n"); state->pc += 2; break;
-        case 0xf3: printf("DI\n"); break;
-        case 0xf4: printf("CP   adr\n"); state->pc += 2; break;
-        case 0xf5: printf("PUSH PSW\n"); break;
-        case 0xf6: printf("ORI  0x%02x\n", op[1]); state->pc += 1; break;
-        case 0xf7: printf("RST  6\n"); break;
-        case 0xf8: printf("RM\n"); break;
-        case 0xf9: printf("SPHL\n"); break;
-        case 0xfa: printf("JM   adr\n"); state->pc += 2; break;
-        case 0xfb: printf("EI\n"); break;
-        case 0xfc: printf("CM   adr\n"); state->pc += 2; break;
+        case 0xee:
+            result = state->a ^ op[1];
+            state->a = (uint8_t)(result & 0xff);
+            update_flags(state, result, 0x0f);
+            state->pc += 1; break;
+        case 0xef:
+            state->memory[state->sp - 1] = (uint8_t)(state->pc >> 8);
+            state->memory[state->sp - 2] = (uint8_t)(state->pc & 0xff);
+            state->sp -= 2;
+            state->pc = 0x28;
+            break;
+        case 0xf0:
+            if(state->s == 0) {
+                state->pc = (state->memory[state->sp + 1] << 8) | (uint8_t)state->memory[state->sp]);
+                state->sp += 2;
+            }
+            break;
+        case 0xf1:
+            tmp        = state->memory[state->sp];
+            state->a   = state->memory[state->sp + 1];
+            state->z   = tmp & 0x01;
+            state->s   = (tmp >> 1) & 0x01;
+            state->p   = (tmp >> 2) & 0x01;
+            state->cy  = (tmp >> 3) & 0x01;
+            state->sp += 2;
+            break;
+        case 0xf2:
+            if(state->s == 0)
+                state->pc = (op[2] << 8) | op[1]
+            else
+                state->pc += 2;
+            break;
+        case 0xf3: break;
+        case 0xf4:
+            if(state->s == 0) {
+                state->pc = (op[2] << 8) | op[1];
+            else
+                state->pc += 2;
+            break;
+        case 0xf5:
+            state->memory[state->sp - 1] = state->a;
+            tmp = state->z | (state->s << 1) | (state->p << 2) | (state.cy << 3);
+            state->memory[state->sp - 2] = tmp;
+            state->sp -= 2;
+            break;
+        case 0xf6:
+            result = state->a | op[1];
+            state->a = (uint8_t)(result & 0xff);
+            update_flags(state, result, 0x0f);
+            state->pc += 1; break;
+        case 0xf7:
+            state->memory[state->sp - 1] = (uint8_t)(state->pc >> 8);
+            state->memory[state->sp - 2] = (uint8_t)(state->pc & 0xff);
+            state->sp -= 2;
+            state->pc = 0x30;
+            break;
+        case 0xf8:
+            if(state->s == 1) {
+                state->pc = (state->memory[state->sp + 1] << 8) | (uint8_t)state->memory[state->sp]);
+                state->sp += 2;
+            }
+            break;
+        case 0xf9:
+            state->sp = (state->h << 8) | state->l;
+            break;
+        case 0xfa:
+            if(state->s == 1)
+                state->pc = (op[2] << 8) | op[1]
+            else
+                state->pc += 2;
+            break;
+        case 0xfb: break;
+        case 0xfc:
+            if(state->s == 1) {
+                result = state->pc + 2;
+                state->memory[state->sp - 1] = (uint8_t)(result >> 8);
+                state->memory[state->sp - 2] = (uint8_t)(result & 0xff);
+                state->sp -= 2;
+                state->pc = (op[2] << 8) | op[1];
+            }
+            else {
+                state->pc += 2;
+            }
         case 0xfd: break;
-        case 0xfe: printf("CPI  0x%02x\n", op[1]); state->pc += 1; break;
-        case 0xff: printf("RST  7\n"); break;
+        case 0xfe:
+            tmp = state->a - op[1];
+            state->z  = (tmp == 0) ? 1 : 0;
+            state->s  = (tmp >> 7) & 0x01;
+            state->p  = (~tmp & 0x01);
+            state->cy = (state->a < op[1]);
+            state->pc += 1; break;
+        case 0xff:
+            state->memory[state->sp - 1] = (uint8_t)(state->pc >> 8);
+            state->memory[state->sp - 2] = (uint8_t)(state->pc & 0xff);
+            state->sp -= 2;
+            state->pc = 0x38;
+            break;
         default: _unimpl(*op); return 0;
     }
-    if(skip_increment == 0)
-    	state->pc += 1;
     return 1;
 }
