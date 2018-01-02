@@ -123,7 +123,7 @@ uint8_t emulate_instruction(machine_t * state) {
         case 0x20: break;
         case 0x21: state->h = op[2]; state->l = op[1]; state->pc += 2; break;
         case 0x22:
-        	result = (op[1] << 8) | (uint16_t)op[2];
+        	result = (op[2] << 8) | (uint16_t)op[1];
         	state->memory[result] = state-> l;
         	state->memory[result + 1] = state->h;
 			state->pc += 2;
@@ -153,7 +153,7 @@ uint8_t emulate_instruction(machine_t * state) {
             update_flags(state, result, 0x08);
             break;
         case 0x2a:
-            result = (op[1] << 8) | (uint16_t)op[2];
+            result = (op[2] << 8) | (uint16_t)op[1];
             state->l = state->memory[result];
             state->h = state->memory[result + 1];
             state->pc += 2;
@@ -174,11 +174,11 @@ uint8_t emulate_instruction(machine_t * state) {
             update_flags(state, result, 0x07);
             break;
         case 0x2e: state->l = op[1]; state->pc += 1; break;
-        case 0x2f: state->a = !state->a; break;
+        case 0x2f: state->a = state->a ? 0 : 1; break;
         case 0x30: break;
-        case 0x31: state->sp = (op[1] << 8) | (uint16_t)op[2]; state->pc += 2; break;
+        case 0x31: state->sp = (op[2] << 8) | op[1]; state->pc += 2; break;
         case 0x32:
-            result = (op[1] << 8) | (uint16_t)op[2];
+            result = (op[2] << 8) | op[1];
             state->memory[result] = state->a;
             break;
         case 0x33: state->sp += 1; break;
@@ -205,7 +205,7 @@ uint8_t emulate_instruction(machine_t * state) {
             update_flags(state, result, 0x08);
             break;
         case 0x3a:
-            state->a = state->memory[(op[1] << 8) | (uint16_t)op[2]];
+            state->a = state->memory[(op[2] << 8) | op[1]];
             state->pc += 2;
             break;
         case 0x3b: state->sp -= 1; break;
@@ -218,7 +218,7 @@ uint8_t emulate_instruction(machine_t * state) {
             state->a = (uint8_t)(result & 0xff);
             update_flags(state, result, 0x07); break;
         case 0x3e: state->a = op[1]; state->pc += 1; break;
-        case 0x3f: state->cy = !state->cy; break;
+        case 0x3f: state->cy = state->cy ? 0 : 1; break;
         case 0x40: printf("MOV  B B\n"); break;
         case 0x41: printf("MOV  B C\n"); break;
         case 0x42: printf("MOV  B D\n"); break;
@@ -348,33 +348,37 @@ uint8_t emulate_instruction(machine_t * state) {
         case 0xbe: printf("CMP  M\n"); break;
         case 0xbf: printf("CMP  A\n"); break;
         case 0xc0:
-        	if(!state->z) {
-        		state->pc = (state->memory[state->sp + 1] << 8) | (state->memory[state->sp] & 0xff);
+        	if(state->z == 0) {
+        		state->pc = (state->memory[state->sp + 1] << 8) | (uint8_t)state->memory[state->sp]);
         		state->sp += 2;
         		skip_increment = 1;
         	}
+            else {
+                state->pc += 2;
+            }
 			break;
-        case 0xc1: 
+        case 0xc1:
         	state->c = state->memory[state->sp];
         	state->b = state->memory[state->sp + 1];
         	state->sp = state->sp + 2;
 			break;
         case 0xc2:
-        	if(!state->z) {
-            	state->pc = (op[1] << 8) | (uint16_t)op[2] ;
+        	if(state->z == 0) {
+            	state->pc = (op[2] << 8) | op[1];
             	skip_increment = 1;
+            }
+            else {
+                state->pc += 2;
             }
 			break;
         case 0xc3:
-			state->pc = (op[1] << 8) | (uint16_t)op[2]; 
-			skip_increment = 1;
-			break;
-        case 0xc4: 
-        	result = state->pc + 38;
+			state->pc = (op[2] << 8) | op[1]; skip_increment = 1; break;
+        case 0xc4:
+        	result = state->pc + 3;
         	state->memory[state->sp - 1] = (uint8_t)(result >> 8);
-        	state->memory[state->sp - 2] = (result & 0xff);
+        	state->memory[state->sp - 2] = (uint8_t)(result & 0xff);
         	state->sp -= 2;
-        	state->pc = (op[1] << 8) | (uint16_t)op[2];
+        	state->pc = (op[2] << 8) | op[1];
         	skip_increment = 1;
 			break;
         case 0xc5: printf("PUSH B\n"); break;
@@ -438,7 +442,7 @@ uint8_t emulate_instruction(machine_t * state) {
         case 0xff: printf("RST  7\n"); break;
         default: _unimpl(*op); return 0;
     }
-    if(!skip_increment)
+    if(skip_increment == 0)
     	state->pc += 1;
     return 1;
 }
