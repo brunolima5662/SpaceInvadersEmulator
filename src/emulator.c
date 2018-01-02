@@ -218,134 +218,406 @@ uint8_t emulate_instruction(machine_t * state) {
             update_flags(state, result, 0x07); break;
         case 0x3e: state->a = op[1]; state->pc += 1; break;
         case 0x3f: state->cy = ~state->cy; break;
-        case 0x40: printf("MOV  B B\n"); break;
-        case 0x41: printf("MOV  B C\n"); break;
-        case 0x42: printf("MOV  B D\n"); break;
-        case 0x43: printf("MOV  B E\n"); break;
-        case 0x44: printf("MOV  B H\n"); break;
-        case 0x45: printf("MOV  B L\n"); break;
-        case 0x46: printf("MOV  B M\n"); break;
-        case 0x47: printf("MOV  B A\n"); break;
-        case 0x48: printf("MOV  C B\n"); break;
-        case 0x49: printf("MOV  C C\n"); break;
-        case 0x4a: printf("MOV  C D\n"); break;
-        case 0x4b: printf("MOV  C E\n"); break;
-        case 0x4c: printf("MOV  C H\n"); break;
-        case 0x4d: printf("MOV  C L\n"); break;
-        case 0x4e: printf("MOV  C M\n"); break;
-        case 0x4f: printf("MOV  C A\n"); break;
-        case 0x50: printf("MOV  D B\n"); break;
-        case 0x51: printf("MOV  D C\n"); break;
-        case 0x52: printf("MOV  D D\n"); break;
-        case 0x53: printf("MOV  D E\n"); break;
-        case 0x54: printf("MOV  D H\n"); break;
-        case 0x55: printf("MOV  D L\n"); break;
-        case 0x56: printf("MOV  D M\n"); break;
-        case 0x57: printf("MOV  D A\n"); break;
-        case 0x58: printf("MOV  E B\n"); break;
-        case 0x59: printf("MOV  E C\n"); break;
-        case 0x5a: printf("MOV  E D\n"); break;
-        case 0x5b: printf("MOV  E E\n"); break;
-        case 0x5c: printf("MOV  E H\n"); break;
-        case 0x5d: printf("MOV  E L\n"); break;
-        case 0x5e: printf("MOV  E M\n"); break;
-        case 0x5f: printf("MOV  E A\n"); break;
-        case 0x60: printf("MOV  H B\n"); break;
-        case 0x61: printf("MOV  H C\n"); break;
-        case 0x62: printf("MOV  H D\n"); break;
-        case 0x63: printf("MOV  H E\n"); break;
-        case 0x64: printf("MOV  H H\n"); break;
-        case 0x65: printf("MOV  H L\n"); break;
-        case 0x66: printf("MOV  H M\n"); break;
-        case 0x67: printf("MOV  H A\n"); break;
-        case 0x68: printf("MOV  L B\n"); break;
-        case 0x69: printf("MOV  L C\n"); break;
-        case 0x6a: printf("MOV  L D\n"); break;
-        case 0x6b: printf("MOV  L E\n"); break;
-        case 0x6c: printf("MOV  L H\n"); break;
-        case 0x6d: printf("MOV  L L\n"); break;
-        case 0x6e: printf("MOV  L M\n"); break;
-        case 0x6f: printf("MOV  L A\n"); break;
-        case 0x70: printf("MOV  M B\n"); break;
-        case 0x71: printf("MOV  M C\n"); break;
-        case 0x72: printf("MOV  M D\n"); break;
-        case 0x73: printf("MOV  M E\n"); break;
-        case 0x74: printf("MOV  M H\n"); break;
-        case 0x75: printf("MOV  M L\n"); break;
-        case 0x76: printf("HLT\n"); break;
-        case 0x77: printf("MOV  M A\n"); break;
-        case 0x78: printf("MOV  A B\n"); break;
-        case 0x79: printf("MOV  A C\n"); break;
-        case 0x7a: printf("MOV  A D\n"); break;
-        case 0x7b: printf("MOV  A E\n"); break;
-        case 0x7c: printf("MOV  A H\n"); break;
-        case 0x7d: printf("MOV  A L\n"); break;
-        case 0x7e: printf("MOV  A M\n"); break;
-        case 0x7f: printf("MOV  A A\n"); break;
-        case 0x80: printf("ADD  B\n"); break;
-        case 0x81: printf("ADD  C\n"); break;
-        case 0x82: printf("ADD  D\n"); break;
-        case 0x83: printf("ADD  E\n"); break;
-        case 0x84: printf("ADD  H\n"); break;
-        case 0x85: printf("ADD  L\n"); break;
-        case 0x86: printf("ADD  M\n"); break;
-        case 0x87: printf("ADD	A\n"); break;
-        case 0x88: printf("ADC  B\n"); break;
-        case 0x89: printf("ADC  C\n"); break;
-        case 0x8a: printf("ADC  D\n"); break;
-        case 0x8b: printf("ADC  E\n"); break;
-        case 0x8c: printf("ADC  H\n"); break;
-        case 0x8d: printf("ADC  L\n"); break;
-        case 0x8e: printf("ADC  M\n"); break;
-        case 0x8f: printf("ADC  A\n"); break;
-        case 0x90: printf("SUB  B\n"); break;
-        case 0x91: printf("SUB  C\n"); break;
-        case 0x92: printf("SUB  D\n"); break;
-        case 0x93: printf("SUB  E\n"); break;
-        case 0x94: printf("SUB  H\n"); break;
-        case 0x95: printf("SUB  L\n"); break;
-        case 0x96: printf("SUB  M\n"); break;
-        case 0x97: printf("SUB  A\n"); break;
-        case 0x98: printf("SBB  B\n"); break;
-        case 0x99: printf("SBB  C\n"); break;
-        case 0x9a: printf("SBB  D\n"); break;
-        case 0x9b: printf("SBB  E\n"); break;
-        case 0x9c: printf("SBB  H\n"); break;
-        case 0x9d: printf("SBB  L\n"); break;
-        case 0x9e: printf("SBB  M\n"); break;
-        case 0x9f: printf("SBB  A\n"); break;
-        case 0xa0: printf("ANA  B\n"); break;
-        case 0xa1: printf("ANA  C\n"); break;
-        case 0xa2: printf("ANA  D\n"); break;
-        case 0xa3: printf("ANA  E\n"); break;
-        case 0xa4: printf("ANA  H\n"); break;
-        case 0xa5: printf("ANA  L\n"); break;
-        case 0xa6: printf("ANA  M\n"); break;
-        case 0xa7: printf("ANA  A\n"); break;
-        case 0xa8: printf("XRA  B\n"); break;
-        case 0xa9: printf("XRA  C\n"); break;
-        case 0xaa: printf("XRA  D\n"); break;
-        case 0xab: printf("XRA  E\n"); break;
-        case 0xac: printf("XRA  H\n"); break;
-        case 0xad: printf("XRA  L\n"); break;
-        case 0xae: printf("XRA  M\n"); break;
-        case 0xaf: printf("XRA  A\n"); break;
-        case 0xb0: printf("ORA  B\n"); break;
-        case 0xb1: printf("ORA  C\n"); break;
-        case 0xb2: printf("ORA  D\n"); break;
-        case 0xb3: printf("ORA  E\n"); break;
-        case 0xb4: printf("ORA  H\n"); break;
-        case 0xb5: printf("ORA  L\n"); break;
-        case 0xb6: printf("ORA  M\n"); break;
-        case 0xb7: printf("ORA  A\n"); break;
-        case 0xb8: printf("CMP  B\n"); break;
-        case 0xb9: printf("CMP  C\n"); break;
-        case 0xba: printf("CMP  D\n"); break;
-        case 0xbb: printf("CMP  E\n"); break;
-        case 0xbc: printf("CMP  H\n"); break;
-        case 0xbd: printf("CMP  L\n"); break;
-        case 0xbe: printf("CMP  M\n"); break;
-        case 0xbf: printf("CMP  A\n"); break;
+        case 0x40: state->b = state->b; break;
+        case 0x41: state->b = state->c; break;
+        case 0x42: state->b = state->d; break;
+        case 0x43: state->b = state->e; break;
+        case 0x44: state->b = state->h; break;
+        case 0x45: state->b = state->l; break;
+        case 0x46: state->b = state->memory[(state->h << 8) | state->l]; break;
+        case 0x47: state->b = state->a; break;
+        case 0x48: state->c = state->b; break;
+        case 0x49: state->c = state->c; break;
+        case 0x4a: state->c = state->d; break;
+        case 0x4b: state->c = state->e; break;
+        case 0x4c: state->c = state->h; break;
+        case 0x4d: state->c = state->l; break;
+        case 0x4e: state->c = state->memory[(state->h << 8) | state->l]; break;
+        case 0x4f: state->c = state->a; break;
+        case 0x50: state->d = state->b; break;
+        case 0x51: state->d = state->c; break;
+        case 0x52: state->d = state->d; break;
+        case 0x53: state->d = state->e; break;
+        case 0x54: state->d = state->h; break;
+        case 0x55: state->d = state->l; break;
+        case 0x56: state->d = state->memory[(state->h << 8) | state->l]; break;
+        case 0x57: state->d = state->a; break;
+        case 0x58: state->e = state->b; break;
+        case 0x59: state->e = state->c; break;
+        case 0x5a: state->e = state->d; break;
+        case 0x5b: state->e = state->e; break;
+        case 0x5c: state->e = state->h; break;
+        case 0x5d: state->e = state->l; break;
+        case 0x5e: state->e = state->memory[(state->h << 8) | state->l]; break;
+        case 0x5f: state->e = state->a; break;
+        case 0x60: state->h = state->b; break;
+        case 0x61: state->h = state->c; break;
+        case 0x62: state->h = state->d; break;
+        case 0x63: state->h = state->e; break;
+        case 0x64: state->h = state->h; break;
+        case 0x65: state->h = state->l; break;
+        case 0x66: state->h = state->memory[(state->h << 8) | state->l]; break;
+        case 0x67: state->h = state->a; break;
+        case 0x68: state->l = state->b; break;
+        case 0x69: state->l = state->c; break;
+        case 0x6a: state->l = state->d; break;
+        case 0x6b: state->l = state->e; break;
+        case 0x6c: state->l = state->h; break;
+        case 0x6d: state->l = state->l; break;
+        case 0x6e: state->l = state->memory[(state->h << 8) | state->l]; break;
+        case 0x6f: state->l = state->a; break;
+        case 0x70: state->memory[(state->h << 8) | state->l] = state->b; break;
+        case 0x71: state->memory[(state->h << 8) | state->l] = state->c; break;
+        case 0x72: state->memory[(state->h << 8) | state->l] = state->d; break;
+        case 0x73: state->memory[(state->h << 8) | state->l] = state->e; break;
+        case 0x74: state->memory[(state->h << 8) | state->l] = state->h; break;
+        case 0x75: state->memory[(state->h << 8) | state->l] = state->l; break;
+        case 0x76: break;
+        case 0x77: state->memory[(state->h << 8) | state->l] = state->a; break;
+        case 0x78: state->a = state->b; break;
+        case 0x79: state->a = state->c; break;
+        case 0x7a: state->a = state->d; break;
+        case 0x7b: state->a = state->e; break;
+        case 0x7c: state->a = state->h; break;
+        case 0x7d: state->a = state->l; break;
+        case 0x7e: state->a = state->memory[(state->h << 8) | state->l]; break;
+        case 0x7f: state->a = state->a; break;
+        case 0x80:
+            result = state->a + state->b;
+            state->a = (uint8_t)(result & 0xff);
+            update_flags(state, result, 0x0f);
+            break;
+        case 0x81:
+            result = state->a + state->c;
+            state->a = (uint8_t)(result & 0xff);
+            update_flags(state, result, 0x0f);
+            break;
+        case 0x82:
+            result = state->a + state->d;
+            state->a = (uint8_t)(result & 0xff);
+            update_flags(state, result, 0x0f);
+            break;
+        case 0x83:
+            result = state->a + state->e;
+            state->a = (uint8_t)(result & 0xff);
+            update_flags(state, result, 0x0f);
+            break;
+        case 0x84:
+            result = state->a + state->h;
+            state->a = (uint8_t)(result & 0xff);
+            update_flags(state, result, 0x0f);
+            break;
+        case 0x85:
+            result = state->a + state->l;
+            state->a = (uint8_t)(result & 0xff);
+            update_flags(state, result, 0x0f);
+            break;
+        case 0x86:
+            result = state->a + state->memory[(state->h << 8) | state->l];
+            state->a = (uint8_t)(result & 0xff);
+            update_flags(state, result, 0x0f);
+            break;
+        case 0x87:
+            result = state->a + state->a;
+            state->a = (uint8_t)(result & 0xff);
+            update_flags(state, result, 0x0f);
+            break;
+        case 0x88:
+            result = state->a + state->b + state->cy;
+            state->a = (uint8_t)(result & 0xff);
+            update_flags(state, result, 0x0f);
+            break;
+        case 0x89:
+            result = state->a + state->c + state->cy;
+            state->a = (uint8_t)(result & 0xff);
+            update_flags(state, result, 0x0f);
+            break;
+        case 0x8a:
+            result = state->a + state->d + state->cy;
+            state->a = (uint8_t)(result & 0xff);
+            update_flags(state, result, 0x0f);
+            break;
+        case 0x8b:
+            result = state->a + state->e + state->cy;
+            state->a = (uint8_t)(result & 0xff);
+            update_flags(state, result, 0x0f);
+            break;
+        case 0x8c:
+            result = state->a + state->h + state->cy;
+            state->a = (uint8_t)(result & 0xff);
+            update_flags(state, result, 0x0f);
+            break;
+        case 0x8d:
+            result = state->a + state->l + state->cy;
+            state->a = (uint8_t)(result & 0xff);
+            update_flags(state, result, 0x0f);
+            break;
+        case 0x8e:
+            result = state->a + state->memory[(state->h << 8) | state->l] + state->cy;
+            state->a = (uint8_t)(result & 0xff);
+            update_flags(state, result, 0x0f);
+            break;
+        case 0x8f:
+            result = state->a + state->a + state->cy;
+            state->a = (uint8_t)(result & 0xff);
+            update_flags(state, result, 0x0f);
+            break;
+        case 0x90:
+            result = state->a - state->b;
+            state->a = (uint8_t)(result & 0xff);
+            update_flags(state, result, 0x0f);
+            break;
+        case 0x91:
+            result = state->a - state->c;
+            state->a = (uint8_t)(result & 0xff);
+            update_flags(state, result, 0x0f);
+            break;
+        case 0x92:
+            result = state->a - state->d;
+            state->a = (uint8_t)(result & 0xff);
+            update_flags(state, result, 0x0f);
+            break;
+        case 0x93:
+            result = state->a - state->e;
+            state->a = (uint8_t)(result & 0xff);
+            update_flags(state, result, 0x0f);
+            break;
+        case 0x94:
+            result = state->a - state->h;
+            state->a = (uint8_t)(result & 0xff);
+            update_flags(state, result, 0x0f);
+            break;
+        case 0x95:
+            result = state->a - state->l;
+            state->a = (uint8_t)(result & 0xff);
+            update_flags(state, result, 0x0f);
+            break;
+        case 0x96:
+            result = state->a - state->memory[(state->h << 8) | state->l];
+            state->a = (uint8_t)(result & 0xff);
+            update_flags(state, result, 0x0f);
+            break;
+        case 0x97:
+            result = state->a - state->a;
+            state->a = (uint8_t)(result & 0xff);
+            update_flags(state, result, 0x0f);
+            break;
+        case 0x98:
+            result = state->a - state->b - state->cy;
+            state->a = (uint8_t)(result & 0xff);
+            update_flags(state, result, 0x0f);
+            break;
+        case 0x99:
+            result = state->a - state->c - state->cy;
+            state->a = (uint8_t)(result & 0xff);
+            update_flags(state, result, 0x0f);
+            break;
+        case 0x9a:
+            result = state->a - state->d - state->cy;
+            state->a = (uint8_t)(result & 0xff);
+            update_flags(state, result, 0x0f);
+            break;
+        case 0x9b:
+            result = state->a - state->e - state->cy;
+            state->a = (uint8_t)(result & 0xff);
+            update_flags(state, result, 0x0f);
+            break;
+        case 0x9c:
+            result = state->a - state->h - state->cy;
+            state->a = (uint8_t)(result & 0xff);
+            update_flags(state, result, 0x0f);
+            break;
+        case 0x9d:
+            result = state->a - state->l - state->cy;
+            state->a = (uint8_t)(result & 0xff);
+            update_flags(state, result, 0x0f);
+            break;
+        case 0x9e:
+            result = state->a - state->memory[(state->h << 8) | state->l] - state->cy;
+            state->a = (uint8_t)(result & 0xff);
+            update_flags(state, result, 0x0f);
+            break;
+        case 0x9f:
+            result = state->a - state->a - state->cy;
+            state->a = (uint8_t)(result & 0xff);
+            update_flags(state, result, 0x0f);
+            break;
+        case 0xa0:
+            result = state->a & state->b;
+            state->a = (uint8_t)(result & 0xff);
+            update_flags(state, result, 0x0f);
+            break;
+        case 0xa1:
+            result = state->a & state->c;
+            state->a = (uint8_t)(result & 0xff);
+            update_flags(state, result, 0x0f);
+            break;
+        case 0xa2:
+            result = state->a & state->d;
+            state->a = (uint8_t)(result & 0xff);
+            update_flags(state, result, 0x0f);
+            break;
+        case 0xa3:
+            result = state->a & state->e;
+            state->a = (uint8_t)(result & 0xff);
+            update_flags(state, result, 0x0f);
+            break;
+        case 0xa4:
+            result = state->a & state->h;
+            state->a = (uint8_t)(result & 0xff);
+            update_flags(state, result, 0x0f);
+            break;
+        case 0xa5:
+            result = state->a & state->l;
+            state->a = (uint8_t)(result & 0xff);
+            update_flags(state, result, 0x0f);
+            break;
+        case 0xa6:
+            result = state->a & state->memory[(state->h << 8) | state->l];
+            state->a = (uint8_t)(result & 0xff);
+            update_flags(state, result, 0x0f);
+            break;
+        case 0xa7:
+            result = state->a & state->a;
+            state->a = (uint8_t)(result & 0xff);
+            update_flags(state, result, 0x0f);
+            break;
+        case 0xa8:
+            result = state->a ^ state->b;
+            state->a = (uint8_t)(result & 0xff);
+            update_flags(state, result, 0x0f);
+            break;
+        case 0xa9:
+            result = state->a ^ state->c;
+            state->a = (uint8_t)(result & 0xff);
+            update_flags(state, result, 0x0f);
+            break;
+        case 0xaa:
+            result = state->a ^ state->d;
+            state->a = (uint8_t)(result & 0xff);
+            update_flags(state, result, 0x0f);
+            break;
+        case 0xab:
+            result = state->a ^ state->e;
+            state->a = (uint8_t)(result & 0xff);
+            update_flags(state, result, 0x0f);
+            break;
+        case 0xac:
+            result = state->a ^ state->h;
+            state->a = (uint8_t)(result & 0xff);
+            update_flags(state, result, 0x0f);
+            break;
+        case 0xad:
+            result = state->a ^ state->l;
+            state->a = (uint8_t)(result & 0xff);
+            update_flags(state, result, 0x0f);
+            break;
+        case 0xae:
+            result = state->a ^ state->memory[(state->h << 8) | state->l];
+            state->a = (uint8_t)(result & 0xff);
+            update_flags(state, result, 0x0f);
+            break;
+        case 0xaf:
+            result = state->a ^ state->a;
+            state->a = (uint8_t)(result & 0xff);
+            update_flags(state, result, 0x0f);
+            break;
+        case 0xb0:
+            result = state->a | state->b;
+            state->a = (uint8_t)(result & 0xff);
+            update_flags(state, result, 0x0f);
+            break;
+        case 0xb1:
+            result = state->a | state->c;
+            state->a = (uint8_t)(result & 0xff);
+            update_flags(state, result, 0x0f);
+            break;
+        case 0xb2:
+            result = state->a | state->d;
+            state->a = (uint8_t)(result & 0xff);
+            update_flags(state, result, 0x0f);
+            break;
+        case 0xb3:
+            result = state->a | state->e;
+            state->a = (uint8_t)(result & 0xff);
+            update_flags(state, result, 0x0f);
+            break;
+        case 0xb4:
+            result = state->a | state->h;
+            state->a = (uint8_t)(result & 0xff);
+            update_flags(state, result, 0x0f);
+            break;
+        case 0xb5:
+            result = state->a | state->l;
+            state->a = (uint8_t)(result & 0xff);
+            update_flags(state, result, 0x0f);
+            break;
+        case 0xb6:
+            result = state->a | state->memory[(state->h << 8) | state->l];
+            state->a = (uint8_t)(result & 0xff);
+            update_flags(state, result, 0x0f);
+            break;
+        case 0xb7:
+            result = state->a | state->a;
+            state->a = (uint8_t)(result & 0xff);
+            update_flags(state, result, 0x0f);
+            break;
+        case 0xb8:
+            tmp = state->a - state->b;
+            state->z  = (tmp == 0) ? 1 : 0;
+            state->s  = (tmp >> 7) & 0x01;
+            state->p  = (~tmp & 0x01);
+            state->cy = (state->a < state->b) ? 1 : 0;
+            break;
+        case 0xb9:
+            tmp = state->a - state->c;
+            state->z  = (tmp == 0) ? 1 : 0;
+            state->s  = (tmp >> 7) & 0x01;
+            state->p  = (~tmp & 0x01);
+            state->cy = (state->a < state->c) ? 1 : 0;
+            break;
+        case 0xba:
+            tmp = state->a - state->d;
+            state->z  = (tmp == 0) ? 1 : 0;
+            state->s  = (tmp >> 7) & 0x01;
+            state->p  = (~tmp & 0x01);
+            state->cy = (state->a < state->d) ? 1 : 0;
+            break;
+        case 0xbb:
+            tmp = state->a - state->e;
+            state->z  = (tmp == 0) ? 1 : 0;
+            state->s  = (tmp >> 7) & 0x01;
+            state->p  = (~tmp & 0x01);
+            state->cy = (state->a < state->e) ? 1 : 0;
+            break;
+        case 0xbc:
+            tmp = state->a - state->h;
+            state->z  = (tmp == 0) ? 1 : 0;
+            state->s  = (tmp >> 7) & 0x01;
+            state->p  = (~tmp & 0x01);
+            state->cy = (state->a < state->h) ? 1 : 0;
+            break;
+        case 0xbd:
+            tmp = state->a - state->l;
+            state->z  = (tmp == 0) ? 1 : 0;
+            state->s  = (tmp >> 7) & 0x01;
+            state->p  = (~tmp & 0x01);
+            state->cy = (state->a < state->l) ? 1 : 0;
+            break;
+        case 0xbe:
+            tmp = state->a - state->memory[(state->h << 8) | state->l];
+            state->z  = (tmp == 0) ? 1 : 0;
+            state->s  = (tmp >> 7) & 0x01;
+            state->p  = (~tmp & 0x01);
+            state->cy = (state->a < state->memory[(state->h << 8) | state->l]) ? 1 : 0;
+            break;
+        case 0xbf:
+            tmp = state->a - state->a;
+            state->z  = (tmp == 0) ? 1 : 0;
+            state->s  = (tmp >> 7) & 0x01;
+            state->p  = (~tmp & 0x01);
+            state->cy = (state->a < state->a) ? 1 : 0;
+            break;
         case 0xc0:
         	if(state->z == 0) {
         		state->pc = (state->memory[state->sp + 1] << 8) | (uint8_t)state->memory[state->sp]);
@@ -701,7 +973,7 @@ uint8_t emulate_instruction(machine_t * state) {
             state->z  = (tmp == 0) ? 1 : 0;
             state->s  = (tmp >> 7) & 0x01;
             state->p  = (~tmp & 0x01);
-            state->cy = (state->a < op[1]);
+            state->cy = (state->a < op[1]) ? 1 : 0;
             state->pc += 1; break;
         case 0xff:
             state->memory[state->sp - 1] = (uint8_t)(state->pc >> 8);
