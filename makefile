@@ -1,2 +1,2 @@
-space-invaders: src/main.c src/disassembler.c
-	gcc src/main.c src/disassembler.c -o build/space-invaders
+space-invaders: src/main.c src/disassembler.c src/emulator.c src/machine.c
+	gcc src/main.c src/disassembler.c src/emulator.c src/machine.c -o build/space-invaders
