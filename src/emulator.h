@@ -4,6 +4,7 @@
 #ifndef EMULATOR
 #define EMULATOR
 
-uint8_t emulate_instruction(machine_t *, uint16_t *);
+uint8_t emulate_next_instruction(machine_t *);
+void interrupt_cpu(machine_t *, uint8_t);
 
 #endif

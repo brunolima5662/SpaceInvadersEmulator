@@ -11,7 +11,14 @@ void update_flags(machine_t * state, uint16_t value, uint8_t mask) {
         state->cy = (uint8_t)((value >> 8) & 0x01);
 }
 
-uint8_t emulate_instruction(machine_t * state) {
+void interrupt_cpu(machine_t * state, uint8_t interrupt) {
+    state->memory[state->sp - 1] = (uint8_t)(state->pc >> 8);
+    state->memory[state->sp - 2] = (uint8_t)(state->pc && 0xff);
+    state->sp -= 2;
+    state->pc = interrupt * 0x08;
+}
+
+uint8_t emulate_next_instruction(machine_t * state) {
 	uint8_t  tmp;
     uint16_t result;
     unsigned char * op = &state->memory[state->pc];
@@ -64,7 +71,7 @@ uint8_t emulate_instruction(machine_t * state) {
             break;
         case 0x0e: state->c = op[1]; state->pc += 1; break;
         case 0x0f:
-            state->cy = (state->a & 0x01)
+            state->cy = (state->a & 0x01);
             state->a  = (state->a >> 1) | ((state->a << 7) & 0x80);
             break;
         case 0x10: break;
@@ -143,7 +150,15 @@ uint8_t emulate_instruction(machine_t * state) {
             update_flags(state, result, 0x07);
             break;
         case 0x26: state->h = op[1]; state->pc += 1; break;
-        case 0x27: break;
+        case 0x27:
+            result = (uint16_t)state->a;
+            if((result & 0x000f) > 9)
+                result += 0x06;
+            if(((result & 0x00f0) >> 4) > 9 || state->cy)
+                result += 0x60;
+            state->a = (uint8_t)(result & 0xff);
+            update_flags(state, result, 0x0f);
+            break;
         case 0x28: break;
         case 0x29:
             result = ((state->h << 8) | state->l) + ((state->h << 8) | state->l);
@@ -209,11 +224,11 @@ uint8_t emulate_instruction(machine_t * state) {
             break;
         case 0x3b: state->sp -= 1; break;
         case 0x3c:
-            result = (uint16_t)state->a += 1;
+            result = (uint16_t)state->a + 1;
             state->a = (uint8_t)(result & 0xff);
             update_flags(state, result, 0x07); break;
         case 0x3d:
-            result = (uint16_t)state->a -= 1;
+            result = (uint16_t)state->a - 1;
             state->a = (uint8_t)(result & 0xff);
             update_flags(state, result, 0x07); break;
         case 0x3e: state->a = op[1]; state->pc += 1; break;
@@ -620,7 +635,7 @@ uint8_t emulate_instruction(machine_t * state) {
             break;
         case 0xc0:
         	if(state->z == 0) {
-        		state->pc = (state->memory[state->sp + 1] << 8) | (uint8_t)state->memory[state->sp]);
+        		state->pc = (state->memory[state->sp + 1] << 8) | (uint8_t)state->memory[state->sp];
         		state->sp += 2;
         	}
 			break;
@@ -666,14 +681,13 @@ uint8_t emulate_instruction(machine_t * state) {
             break;
         case 0xc8:
             if(state->z != 0) {
-                state->pc = (state->memory[state->sp + 1] << 8) | (uint8_t)state->memory[state->sp]);
+                state->pc = (state->memory[state->sp + 1] << 8) | (uint8_t)state->memory[state->sp];
                 state->sp += 2;
             }
             break;
         case 0xc9:
             state->pc = (state->memory[state->sp + 1] << 8) | state->memory[state->sp];
             state->sp += 2;
-            skip_increment = 1;
             break;
         case 0xca:
             if(state->z)
@@ -714,7 +728,7 @@ uint8_t emulate_instruction(machine_t * state) {
             break;
         case 0xd0:
             if(state->cy == 0) {
-                state->pc = (state->memory[state->sp + 1] << 8) | (uint8_t)state->memory[state->sp]);
+                state->pc = (state->memory[state->sp + 1] << 8) | (uint8_t)state->memory[state->sp];
                 state->sp += 2;
             }
             break;
@@ -729,7 +743,7 @@ uint8_t emulate_instruction(machine_t * state) {
             else
                 state->pc += 2;
             break;
-        case 0xd3: state->pc += 1; break;
+        case 0xd3: state->ports[op[1]] = state->a; state->pc += 1; break;
         case 0xd4:
             if(state->cy == 0) {
                 result = state->pc + 2;
@@ -760,7 +774,7 @@ uint8_t emulate_instruction(machine_t * state) {
             break;
         case 0xd8:
             if(state->cy != 0) {
-                state->pc = (state->memory[state->sp + 1] << 8) | (uint8_t)state->memory[state->sp]);
+                state->pc = (state->memory[state->sp + 1] << 8) | (uint8_t)state->memory[state->sp];
                 state->sp += 2;
             }
             break;
@@ -771,7 +785,7 @@ uint8_t emulate_instruction(machine_t * state) {
             else
                 state->pc += 2;
             break;
-        case 0xdb: state->pc += 1; break;
+        case 0xdb: state->a = state->ports[op[1]]; state->pc += 1; break;
         case 0xdc:
             if(state->cy != 0) {
                 result = state->pc + 2;
@@ -786,7 +800,7 @@ uint8_t emulate_instruction(machine_t * state) {
             break;
         case 0xdd: break;
         case 0xde:
-            result = (uint16_t)state_>a - (uint16_t)op[1] - (uint16_t)state->cy;
+            result = (uint16_t)state->a - (uint16_t)op[1] - (uint16_t)state->cy;
             state->a = (uint8_t)(result & 0xff);
             update_flags(state, result, 0x0f);
             state->pc += 1; break;
@@ -798,7 +812,7 @@ uint8_t emulate_instruction(machine_t * state) {
             break;
         case 0xe0:
             if(state->p == 0) {
-                state->pc = (state->memory[state->sp + 1] << 8) | (uint8_t)state->memory[state->sp]);
+                state->pc = (state->memory[state->sp + 1] << 8) | (uint8_t)state->memory[state->sp];
                 state->sp += 2;
             }
             break;
@@ -809,7 +823,7 @@ uint8_t emulate_instruction(machine_t * state) {
             break;
         case 0xe2:
             if(state->p == 0)
-                state->pc = (op[2] << 8) | op[1]);
+                state->pc = (op[2] << 8) | op[1];
             else
                 state->pc += 2;
             break;
@@ -851,7 +865,7 @@ uint8_t emulate_instruction(machine_t * state) {
             break;
         case 0xe8:
             if(state->p == 1) {
-                state->pc = (state->memory[state->sp + 1] << 8) | (uint8_t)state->memory[state->sp]);
+                state->pc = (state->memory[state->sp + 1] << 8) | (uint8_t)state->memory[state->sp];
                 state->sp += 2;
             }
             break;
@@ -860,7 +874,7 @@ uint8_t emulate_instruction(machine_t * state) {
             break;
         case 0xea:
             if(state->p == 1)
-                state->pc = (op[2] << 8) | op[1]
+                state->pc = (op[2] << 8) | op[1];
             else
                 state->pc += 2;
             break;
@@ -897,7 +911,7 @@ uint8_t emulate_instruction(machine_t * state) {
             break;
         case 0xf0:
             if(state->s == 0) {
-                state->pc = (state->memory[state->sp + 1] << 8) | (uint8_t)state->memory[state->sp]);
+                state->pc = (state->memory[state->sp + 1] << 8) | (uint8_t)state->memory[state->sp];
                 state->sp += 2;
             }
             break;
@@ -912,20 +926,20 @@ uint8_t emulate_instruction(machine_t * state) {
             break;
         case 0xf2:
             if(state->s == 0)
-                state->pc = (op[2] << 8) | op[1]
+                state->pc = (op[2] << 8) | op[1];
             else
                 state->pc += 2;
             break;
         case 0xf3: break;
         case 0xf4:
-            if(state->s == 0) {
+            if(state->s == 0)
                 state->pc = (op[2] << 8) | op[1];
             else
                 state->pc += 2;
             break;
         case 0xf5:
             state->memory[state->sp - 1] = state->a;
-            tmp = state->z | (state->s << 1) | (state->p << 2) | (state.cy << 3);
+            tmp = state->z | (state->s << 1) | (state->p << 2) | (state->cy << 3);
             state->memory[state->sp - 2] = tmp;
             state->sp -= 2;
             break;
@@ -942,7 +956,7 @@ uint8_t emulate_instruction(machine_t * state) {
             break;
         case 0xf8:
             if(state->s == 1) {
-                state->pc = (state->memory[state->sp + 1] << 8) | (uint8_t)state->memory[state->sp]);
+                state->pc = (state->memory[state->sp + 1] << 8) | (uint8_t)state->memory[state->sp];
                 state->sp += 2;
             }
             break;
@@ -951,7 +965,7 @@ uint8_t emulate_instruction(machine_t * state) {
             break;
         case 0xfa:
             if(state->s == 1)
-                state->pc = (op[2] << 8) | op[1]
+                state->pc = (op[2] << 8) | op[1];
             else
                 state->pc += 2;
             break;
@@ -981,7 +995,7 @@ uint8_t emulate_instruction(machine_t * state) {
             state->sp -= 2;
             state->pc = 0x38;
             break;
-        default: _unimpl(*op); return 0;
+        default: return 0;
     }
     return 1;
 }

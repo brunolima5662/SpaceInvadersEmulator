@@ -1,4 +1,5 @@
 #include <stdint.h>
+#include <time.h>
 
 #ifndef MACHINE
 #define MACHINE
@@ -12,7 +13,8 @@
 #define VIDEO_X 256 // in pixels
 #define VIDEO_Y 224 // in pixels
 #define VIDEO_SCANLINE 32 // in bytes
-#define VIDEO_HZ 60 // in Hz
+#define VIDEO_HZ 0.0166666667f // in seconds ( 60 Hz )
+#define IO_PORTS 8
 
 typedef struct machine {
     uint8_t a;
@@ -29,6 +31,20 @@ typedef struct machine {
     uint8_t p;
     uint8_t cy;
     unsigned char memory[MEMORY_SIZE];
+    uint8_t ports[IO_PORTS];
+
+    // shift operation hardware specific to
+    // the space invaders machine (not part
+    // of the 8080 cpu)
+    uint8_t shift_hi;
+    uint8_t shift_lo;
+    uint8_t shift_offset;
+
+    // time counter to control video rendering
+    time_t last_rendered;
 } machine_t;
+
+void initialize_machine(machine_t *);
+int checkMachineInstruction(machine_t *);
 
 #endif
