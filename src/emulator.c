@@ -272,7 +272,7 @@ uint8_t emulate_instruction(machine_t * state) {
         case 0x73: state->memory[(state->h << 8) | state->l] = state->e; break;
         case 0x74: state->memory[(state->h << 8) | state->l] = state->h; break;
         case 0x75: state->memory[(state->h << 8) | state->l] = state->l; break;
-        case 0x76: break;
+        case 0x76: return 0; break; // halt command, stop emulation...
         case 0x77: state->memory[(state->h << 8) | state->l] = state->a; break;
         case 0x78: state->a = state->b; break;
         case 0x79: state->a = state->c; break;
