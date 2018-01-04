@@ -14,8 +14,10 @@
 #define VIDEO_X 256 // in pixels
 #define VIDEO_Y 224 // in pixels
 #define VIDEO_SCANLINE 32 // in bytes
-#define VIDEO_HZ 0.0166666667f // in seconds ( 60 Hz )
-#define CPU_HZ 0.5 // in nanoseconds ( 2 MHz )
+#define VIDEO_HZ 60 // in Hz
+#define CPU_HZ 2000000 // in Hz
+#define MS_PER_FRAME 17 // in milliseconds (rounded)
+#define CLOCK_CYCLES_PER_FRAME 33333 // (CPU_HZ / VIDEO_HZ)
 #define IO_PORTS 8
 
 typedef struct machine {
@@ -44,11 +46,11 @@ typedef struct machine {
 
     // time counters to control video rendering
     // and processing speeds
-    time_t last_rendered;
-    long   last_processed;
+    long last_rendered;
 } machine_t;
 
 void initialize_machine(machine_t *);
 int checkMachineInstruction(machine_t *);
+void sleep_milliseconds(long);
 
 #endif
