@@ -11,7 +11,7 @@ void interrupt_cpu(machine_t *, uint8_t);
 // takes to run the opcode of its index.
 // e.g clock_cycles[0xd4] = 17 means it takes seventeen
 // clock cycles to run opcode 0xd4 in the 8080 cpu.
-uint8_t clock_cycles[0xff] = {
+uint8_t clock_cycles[0x100] = {
 	4, 10, 7, 5, 5, 5, 7, 4, 4, 10, 7, 5, 5, 5, 7, 4,            /* 0x00 - 0x0f */
 	4, 10, 7, 5, 5, 5, 7, 4, 4, 10, 7, 5, 5, 5, 7, 4,            /* 0x10 - 0x1f */
 	4, 10, 16, 5, 5, 5, 7, 4, 4, 10, 16, 5, 5, 5, 7, 4,          /* 0x20 - 0x2f */
