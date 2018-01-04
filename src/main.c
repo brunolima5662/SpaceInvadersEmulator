@@ -3,13 +3,15 @@
 #include <stdint.h>
 #include <string.h>
 #include <time.h>
+#include "SDL/SDL.h"
 #include "machine.h"
 #include "emulator.h"
 #include "disassembler.h"
 
-void get_current_nanoseconds(long *);
+long get_ms();
 
 int main(int argc, char * argv[]) {
+    SDL_Surface * screen = NULL;
 
     // read rom file into memory
     FILE * rom = fopen("rom/rom", "rb");
@@ -17,6 +19,10 @@ int main(int argc, char * argv[]) {
         printf("ROM file not found, exiting...");
         exit(1);
     }
+
+    // start SDL library and main screen
+    SDL_Init(SDL_INIT_EVERYTHING);
+    screen = SDL_SetVideoMode( VIDEO_X, VIDEO_Y, 32, SDL_SWSURFACE );
 
     // fetch the file size
     fseek(rom, 0, SEEK_END);
@@ -34,35 +40,36 @@ int main(int argc, char * argv[]) {
 
     // start the emulation loop
     uint8_t done = 0;
-    long process_time = 0;
+    uint16_t cycles = 0;
     long process_time_delta = 0;
+    machine.last_rendered = get_ms();
     while(done == 0) {
 
-        // control emulation frequency to not exceed 8080's frequency (2 MHz)
-        get_current_nanoseconds(&process_time);
-        process_time_delta = process_time - machine.last_processed;
-        if(process_time_delta < CPU_HZ)
-            sleep_nanoseconds(CPU_HZ - process_time_delta);
+        // add opcode's cycle number to cycles accumulator
+        cycles += clock_cycles[machine.memory[machine.pc]];
 
         // check if the next intruction should be handled by
         // special machine hardware. if not (returns 0), pass it
         // on to be processed by the cpu emulator
         if(check_machine_instruction(&machine) == 0) {
-
             done = emulate_next_instruction(&machine);
         }
 
-        // check if it's time to render the next video frame
-        if(time(NULL) - machine.last_rendered >= VIDEO_HZ) {
+        // once the emulator has processed the amount of clock cycles per
+        // frame, sleep until it's time to render the next frame
+        if(cycles >= CLOCK_CYCLES_PER_FRAME) {
+            cycles = 0;
+            process_time_delta = get_ms() - machine.last_rendered;
+            sleep_milliseconds(MS_PER_FRAME - process_time_delta);
+
             // render next video frame and generate
             // cpu interrupts to go along with it
             interrupt_cpu(&machine, 2);
-            machine.last_rendered = time(NULL);
+
+            // update machine's last rendered timestamp
+            machine.last_rendered = get_ms();
         }
 
-        // update machine's last processed timestamp
-        get_current_nanoseconds(&process_time);
-        machine.last_processed = process_time;
     }
 
     // disassemble rom into assembly code
@@ -71,11 +78,14 @@ int main(int argc, char * argv[]) {
     // display number of parsed instructions
     //printf("\nPARSED %d INSTRUCTIONS\n", num_parsed);
 
+    // quit SDL
+    SDL_Quit();
+
     return 0;
 }
 
-void get_current_nanoseconds(long * container) {
+void get_ms() {
     struct timespec spec;
     clock_gettime(CLOCK_REALTIME, &spec);
-    (*container) = (spec.tv_sec * 1000000) + spec.tv_nsec;
+    return (spec.tv_sec * 1000) + (spec.tv_nsec / 1000);
 }

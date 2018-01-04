@@ -56,9 +56,9 @@ int check_machine_instruction(machine_t * state) {
     return 0;
 }
 
-void sleep_nanoseconds(long nanoseconds) {
+void sleep_milliseconds(long milliseconds) {
     struct timespec ts;
-    ts.tv_sec  = 0;
-    ts.tv_nsec = nanoseconds;
+    ts.tv_sec  = (milliseconds / 1000);
+    ts.tv_nsec = (milliseconds * 1000);
     nanosleep(&ts, NULL);
 }
