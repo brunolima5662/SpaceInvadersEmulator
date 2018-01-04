@@ -1,5 +1,6 @@
 #include <stdint.h>
 #include <time.h>
+#include <unistd.h>
 
 #ifndef MACHINE
 #define MACHINE
@@ -14,22 +15,23 @@
 #define VIDEO_Y 224 // in pixels
 #define VIDEO_SCANLINE 32 // in bytes
 #define VIDEO_HZ 0.0166666667f // in seconds ( 60 Hz )
+#define CPU_HZ 0.5 // in nanoseconds ( 2 MHz )
 #define IO_PORTS 8
 
 typedef struct machine {
-    uint8_t a;
-    uint8_t b;
-    uint8_t c;
-    uint8_t d;
-    uint8_t e;
-    uint8_t h;
-    uint8_t l;
+    uint8_t  a;
+    uint8_t  b;
+    uint8_t  c;
+    uint8_t  d;
+    uint8_t  e;
+    uint8_t  h;
+    uint8_t  l;
     uint16_t pc;
     uint16_t sp;
-    uint8_t z;
-    uint8_t s;
-    uint8_t p;
-    uint8_t cy;
+    uint8_t  z;
+    uint8_t  s;
+    uint8_t  p;
+    uint8_t  cy;
     unsigned char memory[MEMORY_SIZE];
     uint8_t ports[IO_PORTS];
 
@@ -40,8 +42,10 @@ typedef struct machine {
     uint8_t shift_lo;
     uint8_t shift_offset;
 
-    // time counter to control video rendering
+    // time counters to control video rendering
+    // and processing speeds
     time_t last_rendered;
+    long   last_processed;
 } machine_t;
 
 void initialize_machine(machine_t *);

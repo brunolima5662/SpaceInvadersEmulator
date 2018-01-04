@@ -16,9 +16,14 @@ void initialize_machine(machine_t * state) {
     state->s = 0;
     state->p = 0;
     state->cy = 0;
+    state->shift_hi = 0;
+    state->shift_lo = 0;
+    state->shift_offset = 0;
+    state->last_rendered = 0;
+    state->last_processed = 0;
 }
 
-int checkMachineInstruction(machine_t * state) {
+int check_machine_instruction(machine_t * state) {
     uint16_t value;
     uint8_t * op = &state->memory[state->pc];
     if(*op == 0xdb) { // IN
@@ -49,4 +54,11 @@ int checkMachineInstruction(machine_t * state) {
         return 1;
     }
     return 0;
+}
+
+void sleep_nanoseconds(long nanoseconds) {
+    struct timespec ts;
+    ts.tv_sec  = 0;
+    ts.tv_nsec = nanoseconds;
+    nanosleep(&ts, NULL);
 }
