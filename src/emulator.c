@@ -1,5 +1,25 @@
 #include "emulator.h"
 
+uint8_t clock_cycles[] = {
+/*  00  01  02  03  04  05  06  07  08  09  0a  0b  0c  0d  0e  0f	*/
+	04, 10, 07, 05, 05, 05, 07, 04, 04, 10, 07, 05, 05, 05, 07, 04, /* 0x00 - 0x0f */
+	04, 10, 07, 05, 05, 05, 07, 04, 04, 10, 07, 05, 05, 05, 07, 04, /* 0x10 - 0x1f */
+	04, 10, 16, 05, 05, 05, 07, 04, 04, 10, 16, 05, 05, 05, 07, 04, /* 0x20 - 0x2f */
+	04, 10, 13, 05, 10, 10, 07, 04, 04, 10, 13, 05, 05, 05, 07, 04, /* 0x30 - 0x3f */
+	05, 05, 05, 05, 05, 05, 07, 05, 05, 05, 05, 05, 05, 05, 07, 05, /* 0x40 - 0x4f */
+	05, 05, 05, 05, 05, 05, 07, 05, 05, 05, 05, 05, 05, 05, 07, 05, /* 0x50 - 0x5f */
+	05, 05, 05, 05, 05, 05, 07, 05, 05, 05, 05, 05, 05, 05, 07, 05, /* 0x60 - 0x6f */
+	07, 07, 07, 07, 07, 07, 07, 07, 05, 05, 05, 05, 05, 05, 07, 05, /* 0x70 - 0x7f */
+	04, 04, 04, 04, 04, 04, 07, 04, 04, 04, 04, 04, 04, 04, 07, 04, /* 0x80 - 0x8f */
+	04, 04, 04, 04, 04, 04, 07, 04, 04, 04, 04, 04, 04, 04, 07, 04, /* 0x90 - 0x9f */
+	04, 04, 04, 04, 04, 04, 07, 04, 04, 04, 04, 04, 04, 04, 07, 04, /* 0xa0 - 0xaf */
+	04, 04, 04, 04, 04, 04, 07, 04, 04, 04, 04, 04, 04, 04, 07, 04, /* 0xb0 - 0xbf */
+	11, 10, 10, 10, 17, 11, 07, 11, 11, 10, 10, 04, 17, 17, 07, 11, /* 0xc0 - 0xcf */
+	11, 10, 10, 10, 17, 11, 07, 11, 11, 04, 10, 10, 17, 04, 07, 11, /* 0xd0 - 0xdf */
+	11, 10, 10, 18, 17, 11, 07, 11, 11, 05, 10, 04, 17, 04, 07, 11, /* 0xe0 - 0xef */
+	11, 10, 10, 04, 17, 11, 07, 11, 11, 05, 10, 04, 17, 04, 07, 11  /* 0xf0 - 0xff */
+};
+
 void update_flags(machine_t * state, uint16_t value, uint8_t mask) {
     if(mask & 0x01)
         state->z  = (value == 0) ? 1 : 0;
@@ -9,13 +29,6 @@ void update_flags(machine_t * state, uint16_t value, uint8_t mask) {
         state->p  = (uint8_t)(~value & 0x01);
     if(mask & 0x08)
         state->cy = (uint8_t)((value >> 8) & 0x01);
-}
-
-void interrupt_cpu(machine_t * state, uint8_t interrupt) {
-    state->memory[state->sp - 1] = (uint8_t)(state->pc >> 8);
-    state->memory[state->sp - 2] = (uint8_t)(state->pc && 0xff);
-    state->sp -= 2;
-    state->pc = interrupt * 0x08;
 }
 
 uint8_t emulate_next_instruction(machine_t * state) {
@@ -930,7 +943,7 @@ uint8_t emulate_next_instruction(machine_t * state) {
             else
                 state->pc += 2;
             break;
-        case 0xf3: break;
+        case 0xf3: state->accept_interrupt = 0; break;
         case 0xf4:
             if(state->s == 0)
                 state->pc = (op[2] << 8) | op[1];
@@ -969,7 +982,7 @@ uint8_t emulate_next_instruction(machine_t * state) {
             else
                 state->pc += 2;
             break;
-        case 0xfb: break;
+        case 0xfb: state->accept_interrupt = 1; break;
         case 0xfc:
             if(state->s == 1) {
                 result = state->pc + 2;
