@@ -1,8 +1,10 @@
 #include "machine.h"
 
+void interrupt_cpu(machine_t *, uint8_t);
+
 void initialize_machine(machine_t * state) {
-    for(uint8_t i = 0; i < IO_PORTS; i++)
-        state->ports[i] = 0;
+    memset(state->memory, 0, MEMORY_SIZE);
+    memset(state->ports, 0, IO_PORTS);
     state->a = 0;
     state->b = 0;
     state->c = 0;
@@ -20,7 +22,7 @@ void initialize_machine(machine_t * state) {
     state->shift_lo = 0;
     state->shift_offset = 0;
     state->last_rendered = 0;
-    state->last_processed = 0;
+    state->accept_interrupt = 0;
 }
 
 int check_machine_instruction(machine_t * state) {
@@ -54,6 +56,44 @@ int check_machine_instruction(machine_t * state) {
         return 1;
     }
     return 0;
+}
+
+void interrupt_cpu(machine_t * state, uint8_t interrupt) {
+    state->memory[state->sp - 1] = (uint8_t)(state->pc >> 8);
+    state->memory[state->sp - 2] = (uint8_t)(state->pc && 0xff);
+    state->sp -= 2;
+    state->pc = interrupt * 0x08;
+}
+
+void render_frame(machine_t * state, SDL_Surface * frame) {
+    if(SDL_MUSTLOCK(frame))
+        SDL_LockSurface(frame);
+    unsigned char * video_ram = &state->memory[VIDEO_RAM_START];
+    uint32_t white = SDL_MapRGB(frame->format, 0xff, 0xff, 0xff);
+    uint32_t black = SDL_MapRGB(frame->format, 0x00, 0x00, 0x00);
+    uint32_t * pixels = (uint32_t *)frame->pixels;
+    uint32_t * buffer = NULL;
+    uint16_t x, y, x_byte, bit, offset;
+    uint16_t half_h = (uint16_t)floor((double)frame->h / 2.0f);
+
+    unsigned char pixel;
+    for(y = 0; y < frame->h; y++) {
+        for(x = 0; x_byte = 0; x < frame->w; x += 8, x_byte++) {
+            pixel = video_ram[(y * VIDEO_SCANLINE) + x_byte];
+            offset = VIDEO_Y * (VIDEO_X - x - 1) + y;
+            buffer = &pixels[offset];
+            for(bit = 0; bit < 8; bit++) {
+                pixels[offset] = ((pixel >> bit) && 0x01) ? white : black;
+                offset -= VIDEO_Y;
+            }
+        }
+        if(y == half_h) {
+            interrupt_cpu(state, 1);
+        }
+    }
+    interrupt_cpu(state, 2);
+    if(SDL_MUSTLOCK(frame))
+        SDL_UnlockSurface(frame);
 }
 
 void sleep_milliseconds(long milliseconds) {

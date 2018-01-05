@@ -1,9 +1,11 @@
+#ifndef MACHINE
+#define MACHINE
+
 #include <stdint.h>
 #include <time.h>
 #include <unistd.h>
-
-#ifndef MACHINE
-#define MACHINE
+#include <math.h>
+#include "SDL2/SDL.h"
 
 #define MEMORY_SIZE 0x10000
 #define ROM_START 0x0000
@@ -44,13 +46,17 @@ typedef struct machine {
     uint8_t shift_lo;
     uint8_t shift_offset;
 
+    // interrupt flag
+    uint8_t accept_interrupt;
+
     // time counters to control video rendering
     // and processing speeds
     long last_rendered;
 } machine_t;
 
 void initialize_machine(machine_t *);
-int checkMachineInstruction(machine_t *);
+int check_machine_instruction(machine_t *);
+void render_frame(machine_t *, SDL_Surface *);
 void sleep_milliseconds(long);
 
 #endif
