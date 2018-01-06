@@ -72,26 +72,19 @@ void render_frame(machine_t * state, SDL_Surface * frame) {
     uint32_t white = SDL_MapRGB(frame->format, 0xff, 0xff, 0xff);
     uint32_t black = SDL_MapRGB(frame->format, 0x00, 0x00, 0x00);
     uint32_t * pixels = (uint32_t *)frame->pixels;
-    uint32_t * buffer = NULL;
     uint16_t x, y, x_byte, bit, offset;
-    uint16_t half_h = (uint16_t)floor((double)frame->h / 2.0f);
 
     unsigned char pixel;
     for(y = 0; y < frame->h; y++) {
-        for(x = 0; x_byte = 0; x < frame->w; x += 8, x_byte++) {
+        for(x = 0, x_byte = 0; x < frame->w; x += 8, x_byte++) {
             pixel = video_ram[(y * VIDEO_SCANLINE) + x_byte];
             offset = VIDEO_Y * (VIDEO_X - x - 1) + y;
-            buffer = &pixels[offset];
             for(bit = 0; bit < 8; bit++) {
                 pixels[offset] = ((pixel >> bit) && 0x01) ? white : black;
                 offset -= VIDEO_Y;
             }
         }
-        if(y == half_h) {
-            interrupt_cpu(state, 1);
-        }
     }
-    interrupt_cpu(state, 2);
     if(SDL_MUSTLOCK(frame))
         SDL_UnlockSurface(frame);
 }
