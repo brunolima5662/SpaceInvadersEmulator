@@ -51,12 +51,13 @@ typedef struct machine {
 
     // time counters to control video rendering
     // and processing speeds
-    long last_rendered;
+    uint64_t last_rendered;
 } machine_t;
 
 void initialize_machine(machine_t *);
 int check_machine_instruction(machine_t *);
 void render_frame(machine_t *, SDL_Surface *);
 void sleep_milliseconds(long);
+void interrupt_cpu(machine_t *, uint8_t);
 
 #endif

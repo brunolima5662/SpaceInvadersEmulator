@@ -8,7 +8,7 @@
 #include "emulator.h"
 #include "disassembler.h"
 
-long get_ms();
+uint64_t get_ms();
 
 int main(int argc, char * argv[]) {
     SDL_Window * window = NULL;
@@ -56,7 +56,7 @@ int main(int argc, char * argv[]) {
     uint16_t cycles = 0;
     uint16_t half_cpf = CLOCK_CYCLES_PER_FRAME / 2;
     uint8_t processed_interrupt_1 = 0;
-    long process_time_delta = 0;
+    uint32_t process_time_delta = 0;
     machine.last_rendered = get_ms();
     while(done == 0) {
 
@@ -66,11 +66,18 @@ int main(int argc, char * argv[]) {
         // check if the next intruction should be handled by
         // special machine hardware. if not (returns 0), pass it
         // on to be processed by the cpu emulator
-        if(check_machine_instruction(&machine) == 0) {
-            done = emulate_next_instruction(&machine);
+        //printf("machine pc: %02x\n", machine.pc);
+        disassemble_at_memory(machine.memory, machine.pc);
+        if(machine.memory[machine.pc] == 0x20) {
+            done = 1;
+        }
+        else if(check_machine_instruction(&machine) == 0) {
+            done = !emulate_next_instruction(&machine);
         }
 
+
         if(machine.accept_interrupt == 1 && processed_interrupt_1 == 0 && cycles >= half_cpf) {
+            //printf("Emitting cpu interrupt 1...\n");
             processed_interrupt_1 = 1;
             interrupt_cpu(&machine, 1);
         }
@@ -78,15 +85,19 @@ int main(int argc, char * argv[]) {
         // once the emulator has processed the amount of clock cycles per
         // frame, sleep until it's time to render the next frame
         if(cycles >= CLOCK_CYCLES_PER_FRAME) {
+            //printf("Hit cycles/frame threshold...\n");
             cycles = 0;
             processed_interrupt_1 = 0;
-            process_time_delta = get_ms() - machine.last_rendered;
-            sleep_milliseconds(MS_PER_FRAME - process_time_delta);
+            process_time_delta = (uint32_t)(get_ms() - machine.last_rendered);
+            if(process_time_delta < 17)
+                sleep_milliseconds(MS_PER_FRAME - process_time_delta);
 
+            //printf("Emitting cpu interrupt 2...\n");
             if(machine.accept_interrupt == 1) {
                 interrupt_cpu(&machine, 2);
             }
 
+            //printf("Rendering frame...\n");
             // render next video frame
             render_frame(&machine, screen);
             SDL_UpdateWindowSurface(window);
@@ -98,10 +109,10 @@ int main(int argc, char * argv[]) {
     }
 
     // disassemble rom into assembly code
-    uint16_t num_parsed = disassemble(rom_mem, size);
-
-    // display number of parsed instructions
-    printf("\nPARSED %d INSTRUCTIONS\n", num_parsed);
+    // uint16_t num_parsed = disassemble(rom_mem, size);
+    //
+    // // display number of parsed instructions
+    // printf("\nPARSED %d INSTRUCTIONS\n", num_parsed);
 
     // quit SDL
     SDL_DestroyWindow(window);
@@ -110,8 +121,9 @@ int main(int argc, char * argv[]) {
     return 0;
 }
 
-long get_ms() {
+uint64_t get_ms() {
     struct timespec spec;
     clock_gettime(CLOCK_REALTIME, &spec);
-    return (spec.tv_sec * 1000) + (spec.tv_nsec / 1000);
+    uint64_t milliseconds = (spec.tv_sec - 1514764800) * 1000;
+    return (milliseconds + (uint64_t)(spec.tv_nsec / 1000000UL));
 }
