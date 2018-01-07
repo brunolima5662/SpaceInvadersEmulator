@@ -63,6 +63,7 @@ void interrupt_cpu(machine_t * state, uint8_t interrupt) {
     state->memory[state->sp - 2] = (uint8_t)(state->pc && 0xff);
     state->sp -= 2;
     state->pc = interrupt * 0x08;
+    state->accept_interrupt = 0;
 }
 
 void render_frame(machine_t * state, SDL_Surface * frame) {
