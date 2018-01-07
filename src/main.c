@@ -99,8 +99,8 @@ int main(int argc, char * argv[]) {
                 interrupt_cpu(&machine, 2);
             }
 
-            printf("Rendering frame...\n");
-            render next video frame
+            // printf("Rendering frame...\n");
+            // render next video frame
             render_frame(&machine, screen);
             SDL_UpdateWindowSurface(window);
 
