@@ -75,8 +75,9 @@ void render_frame(machine_t * state, SDL_Surface * frame) {
     uint32_t * pixels = (uint32_t *)frame->pixels;
     uint16_t x, y, x_byte, bit, offset;
     unsigned char pixel;
-    for(y = 0; y < frame->h; y++) {
-        for(x = 0, x_byte = 0; x < frame->w; x += 8, x_byte++) {
+    uint32_t max_offset = 0;
+    for(y = 0; y < frame->w; y++) {
+        for(x = 0, x_byte = 0; x < frame->h; x += 8, x_byte++) {
             pixel = video_ram[(y * VIDEO_SCANLINE) + x_byte];
             offset = VIDEO_Y * (VIDEO_X - x - 1) + y;
             for(bit = 0; bit < 8; bit++) {
