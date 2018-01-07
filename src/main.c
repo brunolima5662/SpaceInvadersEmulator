@@ -13,6 +13,7 @@ uint64_t get_ms();
 int main(int argc, char * argv[]) {
     SDL_Window * window = NULL;
     SDL_Surface * screen = NULL;
+    SDL_Event evt;
 
     // start SDL library and main window
     if(SDL_Init(SDL_INIT_VIDEO) < 0) {
@@ -22,8 +23,8 @@ int main(int argc, char * argv[]) {
         "Space Invaders",
         SDL_WINDOWPOS_UNDEFINED,
         SDL_WINDOWPOS_UNDEFINED,
-        VIDEO_X,
-        VIDEO_Y,
+        VIDEO_Y, // flip width and height since the machine's screen
+        VIDEO_X, // is actually flipped on its side for it to be vertical
         SDL_WINDOW_SHOWN
     );
     screen = SDL_GetWindowSurface(window);
@@ -67,8 +68,8 @@ int main(int argc, char * argv[]) {
         // check if the next intruction should be handled by
         // special machine hardware. if not (returns 0), pass it
         // on to be processed by the cpu emulator
-        printf("%lu (PC = 0x%02x)\t", count, machine.pc);
-        disassemble_at_memory(machine.memory, machine.pc);
+        // printf("%lu", count);
+        // disassemble_at_memory(machine.memory, machine.pc);
         if(check_machine_instruction(&machine) == 0) {
             done = !emulate_next_instruction(&machine);
         }
@@ -86,16 +87,12 @@ int main(int argc, char * argv[]) {
             cycles = 0;
             processed_interrupt_1 = 0;
             process_time_delta = (uint32_t)(get_ms() - machine.last_rendered);
-            if(process_time_delta < 17)
+            if(process_time_delta < 17) {
                 sleep_milliseconds(MS_PER_FRAME - process_time_delta);
+            }
 
             //printf("Emitting cpu interrupt 2...\n");
             if(machine.accept_interrupt == 1) {
-                if(interrupted == 0)
-                    firstsp = machine.sp;
-                if(interrupted == 0)
-                    interrupted_adr = machine.pc;
-                interrupted = 1;
                 interrupt_cpu(&machine, 2);
             }
 
@@ -106,6 +103,13 @@ int main(int argc, char * argv[]) {
 
             // update machine's last rendered timestamp
             machine.last_rendered = get_ms();
+        }
+
+        while(SDL_PollEvent(&evt)) {
+            switch(evt.type) {
+                case SDL_QUIT: done = 1; break;
+                /* process other events you want to handle here */
+            }
         }
 
     }
