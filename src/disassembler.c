@@ -6,7 +6,7 @@ void _unimpl(unsigned char opcode) {
 
 uint8_t disassemble_opcode(unsigned char * mem, uint16_t * pc) {
     unsigned char * op = &mem[*pc];
-    printf("0x%02x:\t", (*op));
+    printf("0x%02x: ", (*op));
     switch(*op) {
         case 0x00: printf("NOP\n"); break;
         case 0x01: printf("LXI  B 0x%02x,0x%02x\n", op[2], op[1]); (*pc) += 2; break;

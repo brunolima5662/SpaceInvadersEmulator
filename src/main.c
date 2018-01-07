@@ -24,7 +24,7 @@ int main(int argc, char * argv[]) {
         SDL_WINDOWPOS_UNDEFINED,
         VIDEO_X,
         VIDEO_Y,
-        SDL_WINDOW_OPENGL
+        SDL_WINDOW_SHOWN
     );
     screen = SDL_GetWindowSurface(window);
     SDL_FillRect(screen, NULL, SDL_MapRGB(screen->format, 0x00, 0x00, 0x00));
@@ -57,24 +57,21 @@ int main(int argc, char * argv[]) {
     uint16_t half_cpf = CLOCK_CYCLES_PER_FRAME / 2;
     uint8_t processed_interrupt_1 = 0;
     uint32_t process_time_delta = 0;
+    uint64_t count = 0;
     machine.last_rendered = get_ms();
     while(done == 0) {
-
+        count += 1;
         // add opcode's cycle number to cycles accumulator
         cycles += clock_cycles[machine.memory[machine.pc]];
 
         // check if the next intruction should be handled by
         // special machine hardware. if not (returns 0), pass it
         // on to be processed by the cpu emulator
-        //printf("machine pc: %02x\n", machine.pc);
+        printf("%lu (PC = 0x%02x)\t", count, machine.pc);
         disassemble_at_memory(machine.memory, machine.pc);
-        if(machine.memory[machine.pc] == 0x20) {
-            done = 1;
-        }
-        else if(check_machine_instruction(&machine) == 0) {
+        if(check_machine_instruction(&machine) == 0) {
             done = !emulate_next_instruction(&machine);
         }
-
 
         if(machine.accept_interrupt == 1 && processed_interrupt_1 == 0 && cycles >= half_cpf) {
             //printf("Emitting cpu interrupt 1...\n");
@@ -94,11 +91,16 @@ int main(int argc, char * argv[]) {
 
             //printf("Emitting cpu interrupt 2...\n");
             if(machine.accept_interrupt == 1) {
+                if(interrupted == 0)
+                    firstsp = machine.sp;
+                if(interrupted == 0)
+                    interrupted_adr = machine.pc;
+                interrupted = 1;
                 interrupt_cpu(&machine, 2);
             }
 
-            //printf("Rendering frame...\n");
-            // render next video frame
+            printf("Rendering frame...\n");
+            render next video frame
             render_frame(&machine, screen);
             SDL_UpdateWindowSurface(window);
 
@@ -107,12 +109,6 @@ int main(int argc, char * argv[]) {
         }
 
     }
-
-    // disassemble rom into assembly code
-    // uint16_t num_parsed = disassemble(rom_mem, size);
-    //
-    // // display number of parsed instructions
-    // printf("\nPARSED %d INSTRUCTIONS\n", num_parsed);
 
     // quit SDL
     SDL_DestroyWindow(window);
