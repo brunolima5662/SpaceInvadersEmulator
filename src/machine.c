@@ -66,14 +66,13 @@ void interrupt_cpu(machine_t * state, uint8_t interrupt) {
 }
 
 void render_frame(machine_t * state, SDL_Surface * frame) {
-    if(SDL_MUSTLOCK(frame))
-        SDL_LockSurface(frame);
     unsigned char * video_ram = &state->memory[VIDEO_RAM_START];
     uint32_t white = SDL_MapRGB(frame->format, 0xff, 0xff, 0xff);
     uint32_t black = SDL_MapRGB(frame->format, 0x00, 0x00, 0x00);
+
+    SDL_LockSurface(frame);
     uint32_t * pixels = (uint32_t *)frame->pixels;
     uint16_t x, y, x_byte, bit, offset;
-
     unsigned char pixel;
     for(y = 0; y < frame->h; y++) {
         for(x = 0, x_byte = 0; x < frame->w; x += 8, x_byte++) {
@@ -85,13 +84,12 @@ void render_frame(machine_t * state, SDL_Surface * frame) {
             }
         }
     }
-    if(SDL_MUSTLOCK(frame))
-        SDL_UnlockSurface(frame);
+    SDL_UnlockSurface(frame);
 }
 
 void sleep_milliseconds(long milliseconds) {
     struct timespec ts;
     ts.tv_sec  = (milliseconds / 1000);
-    ts.tv_nsec = (milliseconds * 1000);
+    ts.tv_nsec = (milliseconds * 1000000);
     nanosleep(&ts, NULL);
 }
