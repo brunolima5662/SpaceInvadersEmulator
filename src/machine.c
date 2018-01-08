@@ -21,7 +21,6 @@ void initialize_machine(machine_t * state) {
     state->shift_hi = 0;
     state->shift_lo = 0;
     state->shift_offset = 0;
-    state->last_rendered = 0;
     state->accept_interrupt = 0;
 }
 
@@ -60,7 +59,7 @@ int check_machine_instruction(machine_t * state) {
 
 void interrupt_cpu(machine_t * state, uint8_t interrupt) {
     state->memory[state->sp - 1] = (uint8_t)(state->pc >> 8);
-    state->memory[state->sp - 2] = (uint8_t)(state->pc && 0xff);
+    state->memory[state->sp - 2] = (uint8_t)(state->pc & 0xff);
     state->sp -= 2;
     state->pc = interrupt * 0x08;
     state->accept_interrupt = 0;
@@ -75,13 +74,12 @@ void render_frame(machine_t * state, SDL_Surface * frame) {
     uint32_t * pixels = (uint32_t *)frame->pixels;
     uint16_t x, y, x_byte, bit, offset;
     unsigned char pixel;
-    uint32_t max_offset = 0;
     for(y = 0; y < frame->w; y++) {
         for(x = 0, x_byte = 0; x < frame->h; x += 8, x_byte++) {
             pixel = video_ram[(y * VIDEO_SCANLINE) + x_byte];
             offset = VIDEO_Y * (VIDEO_X - x - 1) + y;
             for(bit = 0; bit < 8; bit++) {
-                pixels[offset] = ((pixel >> bit) && 0x01) ? white : black;
+                pixels[offset] = ((pixel >> bit) & 0x01) ? white : black;
                 offset -= VIDEO_Y;
             }
         }
@@ -89,9 +87,16 @@ void render_frame(machine_t * state, SDL_Surface * frame) {
     SDL_UnlockSurface(frame);
 }
 
-void sleep_milliseconds(long milliseconds) {
+void sleep_microseconds(uint64_t microseconds) {
     struct timespec ts;
-    ts.tv_sec  = (milliseconds / 1000);
-    ts.tv_nsec = (milliseconds * 1000000);
-    nanosleep(&ts, NULL);
+    int result;
+    clock_gettime(CLOCK_REALTIME, &ts);
+    ts.tv_nsec += (microseconds * 1000);
+    if(ts.tv_nsec > 999999999UL) {
+        ts.tv_sec += 1;
+        ts.tv_nsec -= 1000000000UL;
+    }
+    do {
+        result = clock_nanosleep(CLOCK_REALTIME, TIMER_ABSTIME, &ts, NULL);
+    } while(result != 0);
 }

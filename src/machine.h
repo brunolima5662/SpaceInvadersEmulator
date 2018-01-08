@@ -18,8 +18,7 @@
 #define VIDEO_SCANLINE 32 // in bytes
 #define VIDEO_HZ 60 // in Hz
 #define CPU_HZ 2000000 // in Hz
-#define MS_PER_FRAME 17 // in milliseconds (rounded)
-#define CLOCK_CYCLES_PER_FRAME 33333 // (CPU_HZ / VIDEO_HZ)
+#define CLOCK_CYCLES_PER_MS (CPU_HZ / 1000)
 #define IO_PORTS 8
 
 typedef struct machine {
@@ -48,16 +47,12 @@ typedef struct machine {
 
     // interrupt flag
     uint8_t accept_interrupt;
-
-    // time counters to control video rendering
-    // and processing speeds
-    uint64_t last_rendered;
 } machine_t;
 
 void initialize_machine(machine_t *);
 int check_machine_instruction(machine_t *);
 void render_frame(machine_t *, SDL_Surface *);
-void sleep_milliseconds(long);
+void sleep_microseconds(uint64_t);
 void interrupt_cpu(machine_t *, uint8_t);
 
 #endif

@@ -3,14 +3,17 @@
 #include <stdint.h>
 #include <string.h>
 #include <time.h>
+#include <pthread.h>
 #include "SDL2/SDL.h"
 #include "machine.h"
 #include "emulator.h"
 #include "disassembler.h"
 
-uint64_t get_ms();
+uint32_t mcs_per_frame = ((1.0f / VIDEO_HZ) * 1000000UL);
+
 
 int main(int argc, char * argv[]) {
+    uint8_t done = 0;
     SDL_Window * window = NULL;
     SDL_Surface * screen = NULL;
     SDL_Event evt;
@@ -53,77 +56,78 @@ int main(int argc, char * argv[]) {
     fclose(rom);
 
     // start the emulation loop
-    uint8_t done = 0;
-    uint16_t cycles = 0;
-    uint16_t half_cpf = CLOCK_CYCLES_PER_FRAME / 2;
-    uint8_t processed_interrupt_1 = 0;
-    uint32_t process_time_delta = 0;
-    uint64_t count = 0;
-    machine.last_rendered = get_ms();
-    while(done == 0) {
-        count += 1;
-        // add opcode's cycle number to cycles accumulator
-        cycles += clock_cycles[machine.memory[machine.pc]];
+    uint64_t cycles = 0;
+    uint8_t interrupt = 1, frame_ms_offset = 0;
+    struct timespec cpu_timer;
+    uint64_t cpu_time_start = 0, cpu_time_delta = 0;
 
-        // check if the next intruction should be handled by
-        // special machine hardware. if not (returns 0), pass it
-        // on to be processed by the cpu emulator
-        // printf("%lu", count);
-        // disassemble_at_memory(machine.memory, machine.pc);
-        if(check_machine_instruction(&machine) == 0) {
-            done = !emulate_next_instruction(&machine);
+    while(done == 0) {
+        cycles = 0;
+
+        // store the cpu start time for this millisecond batch of operations
+        clock_gettime(CLOCK_REALTIME, &cpu_timer);
+        cpu_time_start = cpu_timer.tv_nsec;
+
+        // renders new frame if any
+        if(frame_ms_offset == 16) {
+            render_frame(&machine, screen);
+            SDL_UpdateWindowSurface(window);
         }
 
-        if(machine.accept_interrupt == 1 && processed_interrupt_1 == 0 && cycles >= half_cpf) {
-            //printf("Emitting cpu interrupt 1...\n");
-            processed_interrupt_1 = 1;
-            interrupt_cpu(&machine, 1);
+
+
+        // process interrupts if necessary
+        if(frame_ms_offset == 8 || frame_ms_offset == 16) {
+            if(machine.accept_interrupt == 1) {
+                //printf("Processing interrupt: %d\n", interrupt);
+                interrupt_cpu(&machine, interrupt);
+            }
+            interrupt ^= 0x03; // toggle between interrupts 1 and 2
+        }
+
+
+        while(cycles < CLOCK_CYCLES_PER_MS) {
+            // add opcode's cycle number to cycles accumulator
+            cycles += clock_cycles[machine.memory[machine.pc]];
+
+            // check if the next intruction should be handled by
+            // special machine hardware. if not (returns 0), pass it
+            // on to be processed by the cpu emulator
+            // disassemble_at_memory(machine.memory, machine.pc);
+            if(check_machine_instruction(&machine) == 0) {
+                done = !emulate_next_instruction(&machine);
+            }
         }
 
         // once the emulator has processed the amount of clock cycles per
-        // frame, sleep until it's time to render the next frame
-        if(cycles >= CLOCK_CYCLES_PER_FRAME) {
-            //printf("Hit cycles/frame threshold...\n");
-            cycles = 0;
-            processed_interrupt_1 = 0;
-            process_time_delta = (uint32_t)(get_ms() - machine.last_rendered);
-            if(process_time_delta < 17) {
-                sleep_milliseconds(MS_PER_FRAME - process_time_delta);
-            }
-
-            //printf("Emitting cpu interrupt 2...\n");
-            if(machine.accept_interrupt == 1) {
-                interrupt_cpu(&machine, 2);
-            }
-
-            // printf("Rendering frame...\n");
-            // render next video frame
-            render_frame(&machine, screen);
-            SDL_UpdateWindowSurface(window);
-
-            // update machine's last rendered timestamp
-            machine.last_rendered = get_ms();
+        // millisecond, sleep until it's time to process the next millisecond
+        // batch of clock cycles
+        if(frame_ms_offset >= 16)
+            frame_ms_offset = 1;
+        else
+            frame_ms_offset += 1;
+        clock_gettime(CLOCK_REALTIME, &cpu_timer);
+        if(cpu_timer.tv_nsec >= cpu_time_start)
+            cpu_time_delta = (cpu_timer.tv_nsec - cpu_time_start) / 1000;
+        else
+            cpu_time_delta = (1000000000UL - cpu_time_start + cpu_timer.tv_nsec) / 1000;
+        if(cpu_time_delta < 1000) {
+            sleep_microseconds(1000 - cpu_time_delta);
         }
 
         while(SDL_PollEvent(&evt)) {
             switch(evt.type) {
                 case SDL_QUIT: done = 1; break;
-                /* process other events you want to handle here */
             }
         }
-
     }
 
     // quit SDL
     SDL_DestroyWindow(window);
     SDL_Quit();
 
-    return 0;
-}
 
-uint64_t get_ms() {
-    struct timespec spec;
-    clock_gettime(CLOCK_REALTIME, &spec);
-    uint64_t milliseconds = (spec.tv_sec - 1514764800) * 1000;
-    return (milliseconds + (uint64_t)(spec.tv_nsec / 1000000UL));
+    printf("Finished\n");
+
+    return 0;
 }
