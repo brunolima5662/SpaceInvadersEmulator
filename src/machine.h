@@ -3,8 +3,6 @@
 
 #include <stdint.h>
 #include <time.h>
-#include <unistd.h>
-#include <math.h>
 #include "SDL2/SDL.h"
 
 #define MEMORY_SIZE 0x10000
@@ -17,9 +15,8 @@
 #define VIDEO_X 256 // in pixels
 #define VIDEO_Y 224 // in pixels
 #define VIDEO_SCANLINE 32 // in bytes
-#define VIDEO_HZ 60 // in Hz
-#define CPU_HZ 2000000 // in Hz
-#define CLOCK_CYCLES_PER_MS (CPU_HZ / 1000)
+#define VIDEO_HZ 60 // in hertz
+#define CPU_KHZ 2000 // in kilohertz
 #define IO_PORTS 8
 
 typedef struct machine {

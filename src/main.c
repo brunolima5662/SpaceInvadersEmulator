@@ -1,7 +1,5 @@
 #include <stdio.h>
-#include <stdlib.h>
 #include <stdint.h>
-#include <string.h>
 #include <time.h>
 #include "SDL2/SDL.h"
 #include "machine.h"
@@ -56,7 +54,11 @@ int main(int argc, char * argv[]) {
 
     // start the emulation loop
     uint64_t cycles = 0;
+    uint16_t ms_per_frame = (uint32_t)((1.0f / VIDEO_HZ) * 1000);
+    uint16_t ms_per_interrupt = ms_per_frame / 2;
     uint8_t interrupt = 1, frame_ms_offset = 0;
+
+    // all time delta calculations are done in microseconds
     struct timespec cpu_timer;
     uint64_t cpu_time_start = 0, cpu_time_delta = 0;
 
@@ -67,25 +69,21 @@ int main(int argc, char * argv[]) {
         clock_gettime(CLOCK_REALTIME, &cpu_timer);
         cpu_time_start = cpu_timer.tv_nsec;
 
-        // renders new frame if any
-        if(frame_ms_offset == 16) {
+        // render new frame if necessary
+        if(frame_ms_offset == ms_per_frame) {
             render_frame(&machine, screen);
             SDL_UpdateWindowSurface(window);
         }
 
-
-
         // process interrupts if necessary
-        if(frame_ms_offset == 8 || frame_ms_offset == 16) {
-            if(machine.accept_interrupt == 1) {
-                //printf("Processing interrupt: %d\n", interrupt);
+        if(frame_ms_offset % ms_per_interrupt == 0) {
+            if(machine.accept_interrupt == 1)
                 interrupt_cpu(&machine, interrupt);
-            }
             interrupt ^= 0x03; // toggle between interrupts 1 and 2
         }
 
 
-        while(cycles < CLOCK_CYCLES_PER_MS) {
+        while(cycles < CPU_KHZ) {
             // add opcode's cycle number to cycles accumulator
             cycles += clock_cycles[machine.memory[machine.pc]];
 
@@ -110,9 +108,8 @@ int main(int argc, char * argv[]) {
             cpu_time_delta = (cpu_timer.tv_nsec - cpu_time_start) / 1000;
         else
             cpu_time_delta = (1000000000UL - cpu_time_start + cpu_timer.tv_nsec) / 1000;
-        if(cpu_time_delta < 1000) {
+        if(cpu_time_delta < 1000)
             sleep_microseconds(1000 - cpu_time_delta);
-        }
 
         while(SDL_PollEvent(&evt)) {
             switch(evt.type) {
