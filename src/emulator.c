@@ -21,7 +21,6 @@ uint8_t clock_cycles[] = {
 };
 
 void update_flags(machine_t * state, uint16_t value, uint8_t mask) {
-	// printf("Value: %u\n", value);
     if(mask & 0x01)
         state->z  = ((value & 0xff) == 0) ? 1 : 0;
     if(mask & 0x02) {
@@ -38,14 +37,6 @@ void update_flags(machine_t * state, uint16_t value, uint8_t mask) {
         state->cy = ((uint8_t)((value >> 8) & 0xff)) ? 1 : 0;
 	else
 		state->cy = 0;
-	// if(mask & 0x01)
-    //     printf("updated zero: %s\n", (state->z == 1) ? "set" : "unset");
-    // if(mask & 0x02)
-    //     printf("updated sign: %s\n", (state->s == 1) ? "set" : "unset");
-    // if(mask & 0x04)
-    //     printf("updated parity: %s\n", (state->p == 1) ? "set" : "unset");
-    // if(mask & 0x08)
-    //     printf("updated carry: %s\n", (state->cy == 1) ? "set" : "unset");
 }
 
 uint8_t emulate_next_instruction(machine_t * state) {
