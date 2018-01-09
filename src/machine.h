@@ -13,6 +13,7 @@
 #define VIDEO_RAM_START 0x2400
 #define RAM_MIRROR_START 0x4000
 
+#define VIDEO_SCALE 3
 #define VIDEO_X 256 // in pixels
 #define VIDEO_Y 224 // in pixels
 #define VIDEO_SCANLINE 32 // in bytes

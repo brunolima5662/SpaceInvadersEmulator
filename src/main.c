@@ -3,7 +3,6 @@
 #include <stdint.h>
 #include <string.h>
 #include <time.h>
-#include <pthread.h>
 #include "SDL2/SDL.h"
 #include "machine.h"
 #include "emulator.h"
@@ -26,8 +25,8 @@ int main(int argc, char * argv[]) {
         "Space Invaders",
         SDL_WINDOWPOS_UNDEFINED,
         SDL_WINDOWPOS_UNDEFINED,
-        VIDEO_Y, // flip width and height since the machine's screen
-        VIDEO_X, // is actually flipped on its side for it to be vertical
+        VIDEO_Y * VIDEO_SCALE, // flip width and height since the machine's screen
+        VIDEO_X * VIDEO_SCALE, // is actually flipped on its side for it to be vertical
         SDL_WINDOW_SHOWN
     );
     screen = SDL_GetWindowSurface(window);

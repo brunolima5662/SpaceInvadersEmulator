@@ -65,22 +65,40 @@ void interrupt_cpu(machine_t * state, uint8_t interrupt) {
     state->accept_interrupt = 0;
 }
 
+void render_scaled_pixel(uint32_t * pixels, uint32_t scaled_w, uint32_t color) {
+    uint32_t x, y, y_limit = (VIDEO_SCALE * scaled_w);
+    for(y = 0; y < y_limit; y += scaled_w) {
+        for(x = 0; x < VIDEO_SCALE; x++) {
+            pixels[x + y] = color;
+        }
+    }
+}
+
 void render_frame(machine_t * state, SDL_Surface * frame) {
     unsigned char * video_ram = &state->memory[VIDEO_RAM_START];
     uint32_t white = SDL_MapRGB(frame->format, 0xff, 0xff, 0xff);
     uint32_t black = SDL_MapRGB(frame->format, 0x00, 0x00, 0x00);
+    uint32_t color;
+    uint32_t scaled_w = VIDEO_Y * VIDEO_SCALE;
+    uint32_t scaled_h = VIDEO_X * VIDEO_SCALE;
+    uint32_t scaled_size = scaled_w * scaled_h;
+
 
     SDL_LockSurface(frame);
     uint32_t * pixels = (uint32_t *)frame->pixels;
-    uint16_t x, y, x_byte, bit, offset;
+    uint16_t x, y, bit;
+    uint32_t offset;
     unsigned char pixel;
-    for(y = 0; y < frame->w; y++) {
-        for(x = 0, x_byte = 0; x < frame->h; x += 8, x_byte++) {
-            pixel = video_ram[(y * VIDEO_SCANLINE) + x_byte];
-            offset = VIDEO_Y * (VIDEO_X - x - 1) + y;
+    for(y = 0; y < VIDEO_Y; y++) {
+        for(x = 0; x < VIDEO_SCANLINE; x++) {
+            pixel   = video_ram[(y * VIDEO_SCANLINE) + x];
+            offset  = scaled_size - ((x * VIDEO_SCALE * 8) * scaled_w);
+            offset += (y * VIDEO_SCALE);
+            offset -= (scaled_w * VIDEO_SCALE);
             for(bit = 0; bit < 8; bit++) {
-                pixels[offset] = ((pixel >> bit) & 0x01) ? white : black;
-                offset -= VIDEO_Y;
+                color = ((pixel >> bit) & 0x01) ? white : black;
+                render_scaled_pixel(&pixels[offset], scaled_w, color);
+                offset -= (scaled_w * VIDEO_SCALE);
             }
         }
     }
