@@ -24,6 +24,10 @@ void initialize_machine(machine_t * state) {
     state->accept_interrupt = 0;
 }
 
+void load_rom(machine_t * state, uint16_t start) {
+    memcpy(&state->memory[start], &_rom_start, _rom_size);
+}
+
 int check_machine_instruction(machine_t * state) {
     uint16_t value;
     uint8_t * op = &state->memory[state->pc];
