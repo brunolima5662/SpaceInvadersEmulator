@@ -31,26 +31,12 @@ int main(int argc, char * argv[]) {
     SDL_FillRect(screen, NULL, SDL_MapRGB(screen->format, 0x00, 0x00, 0x00));
     SDL_UpdateWindowSurface(window);
 
-    // read rom file into memory
-    FILE * rom = fopen("rom/rom", "rb");
-    if (rom == NULL) {
-        printf("ROM file not found, exiting...");
-        exit(1);
-    }
-
-    // fetch the file size
-    fseek(rom, 0, SEEK_END);
-    uint16_t size = ftell(rom);
-    fseek(rom, 0, SEEK_SET);
-
     // declare and initialize the machine object
     machine_t machine;
     initialize_machine(&machine);
 
-    // read the rom file into the machine's
-    // memory and close it when done
-    fread(&machine.memory[0], size, 1, rom);
-    fclose(rom);
+    // read the rom file into the machine's memory
+    load_rom(&machine, 0);
 
     // start the emulation loop
     uint64_t cycles = 0;

@@ -19,6 +19,7 @@
 #define CPU_KHZ 2000 // in kilohertz
 #define IO_PORTS 8
 
+// machine struct
 typedef struct machine {
     uint8_t  a;
     uint8_t  b;
@@ -47,7 +48,13 @@ typedef struct machine {
     uint8_t accept_interrupt;
 } machine_t;
 
+// rom memory addresses and size
+extern unsigned char _rom_start;
+extern unsigned char rom_end;
+extern const uint32_t _rom_size;
+
 void initialize_machine(machine_t *);
+void load_rom(machine_t *, uint16_t);
 int check_machine_instruction(machine_t *);
 void render_frame(machine_t *, SDL_Surface *);
 void sleep_microseconds(uint64_t);
