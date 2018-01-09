@@ -40,7 +40,7 @@ int main(int argc, char * argv[]) {
     uint64_t cycles = 0;
     uint16_t ms_per_frame = (uint32_t)((1.0f / VIDEO_HZ) * 1000);
     uint16_t ms_per_interrupt = ms_per_frame / 2;
-    uint8_t interrupt = 2, frame_ms_offset = 0;
+    uint8_t interrupt = 1, frame_ms_offset = 0;
 
     // all time delta calculations are done in microseconds
     struct timespec cpu_timer;
@@ -61,11 +61,17 @@ int main(int argc, char * argv[]) {
 
         // process interrupts if necessary
         if(frame_ms_offset % ms_per_interrupt == 0) {
+<<<<<<< 8a1ff044c593a563f101cf4446d4e68d99cdbc0b
             if(machine.accept_interrupt == 1) {
                 interrupt_cpu(&machine, interrupt);
                 interrupt ^= 0x03; // toggle between interrupts 1 and 2
             }
 
+=======
+            if(machine.accept_interrupt == 1)
+                interrupt_cpu(&machine, interrupt);
+            interrupt ^= 0x03; // toggle between interrupts 1 and 2
+>>>>>>> Cleaning up some code and makefile, started linking rom file into executable at compile time through NASM
         }
 
 
