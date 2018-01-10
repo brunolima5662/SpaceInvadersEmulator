@@ -2,8 +2,8 @@
 
 My attempt at creating an emulator for Space Invaders (Intel 8080 CPU)
 
-*Building is only supported on UNIX based system*  
-*On Macs, change the -f flag in the makefile's rom.o rule from elf64 to macho64*
+Building is only supported on UNIX based systems.  
+On macs, change the -f flag in the makefile's rom.o rule from elf64 to macho64.
 
 ### Dependencies
 
@@ -17,15 +17,15 @@ My attempt at creating an emulator for Space Invaders (Intel 8080 CPU)
 
 ### Keyboard Controls
 
-Quit Emulation: *Escape*  
-Full Screen Toggle: *F*  
-Player 1:  
-    * Start: *1*  
-    * Shoot: *Space*  
-    * Move Left: *A*  
-    * Move Right: *D*  
-Player 2:  
-    * Start: *2*  
-    * Shoot: *Keypad Enter*  
-    * Move Left: *Left Arrow*  
-    * Move Right: *Right Arrow*  
+* Quit Emulation: *Escape*
+* Full Screen Toggle: *F*
+* Player 1:
+    * Start: *1*
+    * Shoot: *Space*
+    * Move Left: *A*
+    * Move Right: *D*
+* Player 2:
+    * Start: *2*
+    * Shoot: *Keypad Enter*
+    * Move Left: *Left Arrow*
+    * Move Right: *Right Arrow*
