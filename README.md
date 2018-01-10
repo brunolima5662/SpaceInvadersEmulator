@@ -17,7 +17,7 @@ On macs, change the -f flag in the makefile's rom.o rule from elf64 to macho64.
 
 ### Keyboard Controls
 
-* Quit Emulation: *Escape*
+* Insert Coin: *C*
 * Full Screen Toggle: *F*
 * Player 1:
     * Start: *1*
@@ -27,5 +27,6 @@ On macs, change the -f flag in the makefile's rom.o rule from elf64 to macho64.
 * Player 2:
     * Start: *2*
     * Shoot: *Keypad Enter*
-    * Move Left: *Left Arrow*
-    * Move Right: *Right Arrow*
+    * Move Left: *Left Keypad Arrow*
+    * Move Right: *Right Keypad Arrow*
+* Quit Emulation: *Escape*
