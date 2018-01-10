@@ -147,8 +147,9 @@ uint8_t emulate_next_instruction(machine_t * state) {
         	break;
         case 0x1e: state->e = op[1]; state->pc += 1; break;
         case 0x1f:
+			tmp = state->cy ? 1 : 0;
         	state->cy = state->a & 0x01;
-        	state->a = (state->a & 0x80) | (state->a >> 1);
+        	state->a = (tmp << 7) | (state->a >> 1);
         	break;
         case 0x20: break;
         case 0x21: state->h = op[2]; state->l = op[1]; state->pc += 2; break;
