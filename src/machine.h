@@ -19,6 +19,8 @@
 #define CPU_KHZ 2000 // in kilohertz
 #define IO_PORTS 8
 
+#define GAME_NUMBER_OF_LIVES 3 // valid options: 3 - 6
+
 // machine struct
 typedef struct machine {
     uint8_t  a;
@@ -59,5 +61,5 @@ int check_machine_instruction(machine_t *);
 void render_frame(machine_t *, SDL_Surface *);
 void sleep_microseconds(uint64_t);
 void interrupt_cpu(machine_t *, uint8_t);
-
+uint8_t handle_input(machine_t *, uint32_t, uint32_t);
 #endif

@@ -42,7 +42,7 @@ int main(int argc, char * argv[]) {
     uint64_t cycles = 0;
     uint16_t ms_per_frame = (uint32_t)((1.0f / VIDEO_HZ) * 1000);
     uint16_t ms_per_interrupt = ms_per_frame / 2;
-    uint8_t interrupt = 1, frame_ms_offset = 0;
+    uint8_t interrupt = 2, frame_ms_offset = 0;
 
     // all time delta calculations are done in microseconds
     struct timespec cpu_timer;
@@ -63,9 +63,11 @@ int main(int argc, char * argv[]) {
 
         // process interrupts if necessary
         if(frame_ms_offset % ms_per_interrupt == 0) {
-            if(machine.accept_interrupt == 1)
+            if(machine.accept_interrupt == 1) {
                 interrupt_cpu(&machine, interrupt);
-            interrupt ^= 0x03; // toggle between interrupts 1 and 2
+                interrupt ^= 0x03; // toggle between interrupts 1 and 2
+            }
+
         }
 
 
@@ -97,9 +99,19 @@ int main(int argc, char * argv[]) {
         if(cpu_time_delta < 1000)
             sleep_microseconds(1000 - cpu_time_delta);
 
+        uint8_t key_result;
         while(SDL_PollEvent(&evt)) {
             switch(evt.type) {
                 case SDL_QUIT: done = 1; break;
+                case SDL_KEYUP:
+                case SDL_KEYDOWN:
+                    key_result = handle_input(&machine, evt.type, evt.key.keysym.sym);
+                    done |= (key_result == 1);
+                    if(key_result == 2) { // toggle fullcreen
+                        ;
+                    }
+                    break;
+                default: ;
             }
         }
     }

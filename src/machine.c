@@ -22,6 +22,9 @@ void initialize_machine(machine_t * state) {
     state->shift_lo = 0;
     state->shift_offset = 0;
     state->accept_interrupt = 0;
+    state->ports[0] = 0x0e; // bits 1, 2, and 3 are always set
+    state->ports[1] = 0x08; // bit 3 is always set
+    state->ports[2] = 0x08 | (GAME_NUMBER_OF_LIVES - 3); // bit 3 is always set
 }
 
 void load_rom(machine_t * state, uint16_t start) {
@@ -107,6 +110,39 @@ void render_frame(machine_t * state, SDL_Surface * frame) {
         }
     }
     SDL_UnlockSurface(frame);
+}
+
+void update_input_bit(machine_t * state, uint8_t port, uint8_t bit, uint32_t event) {
+    if(event == SDL_KEYDOWN)
+        state->ports[port] |= (1 << bit);
+    else
+        state->ports[port] &= ~(1 << bit);
+}
+
+uint8_t handle_input(machine_t * state, uint32_t event, uint32_t key) {
+    uint8_t result = 0;
+    switch(key) {
+        case SDL_SCANCODE_1: // Player 1 Start
+            update_input_bit(state, 1, 2, event); break;
+        case SDL_SCANCODE_2: // Player 2 Start
+            update_input_bit(state, 1, 1, event); break;
+        case SDL_SCANCODE_SPACE: // Player 1 Shoot Button
+            update_input_bit(state, 1, 4, event); break;
+        case SDL_SCANCODE_A: // Player 2 Left Button
+            update_input_bit(state, 1, 5, event); break;
+        case SDL_SCANCODE_D: // Player 2 Right Button
+            update_input_bit(state, 1, 6, event); break;
+        case SDL_SCANCODE_RETURN2: // Player 2 Shoot Button
+            update_input_bit(state, 2, 4, event); break;
+        case SDL_SCANCODE_LEFT: // Player 2 Left Button
+            update_input_bit(state, 2, 5, event); break;
+        case SDL_SCANCODE_RIGHT: // Player 2 Right Button
+            update_input_bit(state, 2, 6, event); break;
+        case SDL_SCANCODE_F: result = 2; break; // Fullscreen Toggle
+        case SDL_SCANCODE_ESCAPE: result = 1; break; // Quit Emulation
+        default: ;
+    }
+    return result;
 }
 
 void sleep_microseconds(uint64_t microseconds) {
