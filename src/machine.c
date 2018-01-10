@@ -36,12 +36,14 @@ int check_machine_instruction(machine_t * state) {
     uint8_t * op = &state->memory[state->pc];
     if(*op == 0xdb) { // IN
         switch(op[1]) { // port switch
+            case 0: state->a = 1; break;
+            case 1: state->a = state->ports[op[1]]; break;
+            case 2: break;
             case 3:
                 value = (state->shift_hi << 8) | state->shift_lo;
                 state->a = (uint8_t)((value >> (8 - state->shift_offset)) & 0xff);
                 break;
-            default:
-                state->a = state->ports[op[1]];
+            default: ;
         }
         state->pc += 2;
         return 1;
@@ -55,8 +57,7 @@ int check_machine_instruction(machine_t * state) {
                 state->shift_lo = state->shift_hi;
                 state->shift_hi = state->a;
                 break;
-            default:
-                state->ports[op[1]] = state->a;
+            default: ;
         }
         state->pc += 2;
         return 1;
@@ -122,24 +123,27 @@ void update_input_bit(machine_t * state, uint8_t port, uint8_t bit, uint32_t eve
 uint8_t handle_input(machine_t * state, uint32_t event, uint32_t key) {
     uint8_t result = 0;
     switch(key) {
-        case SDL_SCANCODE_1: // Player 1 Start
+        case SDLK_c: // Coin
+            update_input_bit(state, 1, 0, event); break;
+        case SDLK_1: // Player 1 Start
             update_input_bit(state, 1, 2, event); break;
-        case SDL_SCANCODE_2: // Player 2 Start
+        case SDLK_2: // Player 2 Start
             update_input_bit(state, 1, 1, event); break;
-        case SDL_SCANCODE_SPACE: // Player 1 Shoot Button
+        case SDLK_SPACE: // Player 1 Shoot Button
             update_input_bit(state, 1, 4, event); break;
-        case SDL_SCANCODE_A: // Player 2 Left Button
+        case SDLK_a: // Player 2 Left Button
             update_input_bit(state, 1, 5, event); break;
-        case SDL_SCANCODE_D: // Player 2 Right Button
+        case SDLK_d: // Player 2 Right Button
             update_input_bit(state, 1, 6, event); break;
-        case SDL_SCANCODE_RETURN2: // Player 2 Shoot Button
+        case SDLK_RETURN2: // Player 2 Shoot Button
             update_input_bit(state, 2, 4, event); break;
-        case SDL_SCANCODE_LEFT: // Player 2 Left Button
+        case SDLK_LEFT: // Player 2 Left Button
             update_input_bit(state, 2, 5, event); break;
-        case SDL_SCANCODE_RIGHT: // Player 2 Right Button
+        case SDLK_RIGHT: // Player 2 Right Button
             update_input_bit(state, 2, 6, event); break;
-        case SDL_SCANCODE_F: result = 2; break; // Fullscreen Toggle
-        case SDL_SCANCODE_ESCAPE: result = 1; break; // Quit Emulation
+        // commenting out fullscreen... not working right. will revisit later...
+        // case SDLK_f: result = 2; break; // Fullscreen Toggle
+        case SDLK_ESCAPE: result = 1; break; // Quit Emulation
         default: ;
     }
     return result;

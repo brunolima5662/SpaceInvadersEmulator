@@ -11,6 +11,7 @@ uint32_t mcs_per_frame = ((1.0f / VIDEO_HZ) * 1000000UL);
 
 int main(int argc, char * argv[]) {
     uint8_t done = 0;
+    // uint8_t fullscreen = 0;
     SDL_Window * window = NULL;
     SDL_Surface * screen = NULL;
     SDL_Event evt;
@@ -107,9 +108,10 @@ int main(int argc, char * argv[]) {
                 case SDL_KEYDOWN:
                     key_result = handle_input(&machine, evt.type, evt.key.keysym.sym);
                     done |= (key_result == 1);
-                    if(key_result == 2) { // toggle fullcreen
-                        ;
-                    }
+                    // if(key_result == 2 && evt.type == SDL_KEYUP) { // toggle fullcreen
+                    //     fullscreen = fullscreen ? 0 : SDL_WINDOW_FULLSCREEN;
+                    //     SDL_SetWindowFullscreen(window, fullscreen);
+                    // }
                     break;
                 default: ;
             }
