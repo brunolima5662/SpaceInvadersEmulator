@@ -63,4 +63,5 @@ void render_frame(machine_t *, SDL_Surface *);
 void sleep_microseconds(uint64_t);
 void interrupt_cpu(machine_t *, uint8_t);
 uint8_t handle_input(machine_t *, uint32_t, uint32_t);
+
 #endif

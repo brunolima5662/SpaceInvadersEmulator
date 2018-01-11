@@ -5,7 +5,6 @@ HEADERS = src/machine.h src/disassembler.h src/emulator.h src/media.h
 FLAGS = -Wall `sdl2-config --cflags`
 LIBS = `sdl2-config --libs` -lSDL2_mixer
 
-
 space-invaders: src/main.c $(HEADERS) $(OBJECTS)
 	cc src/main.c $(OBJECTS) -o $(EXEC) $(FLAGS) $(LIBS)
 

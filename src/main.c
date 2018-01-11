@@ -64,6 +64,7 @@ int main(int argc, char * argv[]) {
 
         // process interrupts if necessary
         if(frame_ms_offset % ms_per_interrupt == 0) {
+
             if(machine.accept_interrupt == 1) {
                 interrupt_cpu(&machine, interrupt);
                 interrupt ^= 0x03; // toggle between interrupts 1 and 2
