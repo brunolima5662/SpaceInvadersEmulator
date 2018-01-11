@@ -3,7 +3,9 @@
 
 #include <stdint.h>
 #include <time.h>
-#include "SDL2/SDL.h"
+#include <SDL.h>
+#include <SDL_mixer.h>
+#include "media.h"
 
 #define MEMORY_SIZE 0x10000
 #define ROM_START 0x0000
@@ -18,6 +20,7 @@
 #define VIDEO_HZ 60 // in hertz
 #define CPU_KHZ 2000 // in kilohertz
 #define IO_PORTS 8
+#define SOUND_SAMPLES 19
 
 #define GAME_NUMBER_OF_LIVES 3 // valid options: 3 - 6
 
@@ -48,9 +51,13 @@ typedef struct machine {
 
     // interrupt flag
     uint8_t accept_interrupt;
+
+    // sound samples
+    Mix_Chunk * samples[SOUND_SAMPLES];
 } machine_t;
 
 void initialize_machine(machine_t *);
+void shutdown_machine(machine_t *);
 int check_machine_instruction(machine_t *);
 void render_frame(machine_t *, SDL_Surface *);
 void sleep_microseconds(uint64_t);

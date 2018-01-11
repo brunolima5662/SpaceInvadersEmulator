@@ -1,13 +1,11 @@
 #include <stdio.h>
 #include <stdint.h>
 #include <time.h>
-#include "SDL2/SDL.h"
+#include <SDL.h>
+#include <SDL_mixer.h>
 #include "machine.h"
 #include "emulator.h"
 #include "disassembler.h"
-
-uint32_t mcs_per_frame = ((1.0f / VIDEO_HZ) * 1000000UL);
-
 
 int main(int argc, char * argv[]) {
     uint8_t done = 0;
@@ -17,8 +15,13 @@ int main(int argc, char * argv[]) {
     SDL_Event evt;
 
     // start SDL library and main window
-    if(SDL_Init(SDL_INIT_VIDEO) < 0) {
+    if(SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO) < 0) {
         printf("SDL could not initialize! SDL_Error: %s\n", SDL_GetError());
+        return 0;
+    }
+    if(Mix_OpenAudio(11025, AUDIO_U8, 1, 512) < 0) {
+        printf( "SDL_mixer could not initialize! SDL_mixer Error: %s\n", Mix_GetError());
+        return 0;
     }
     window = SDL_CreateWindow(
         "Space Invaders",
@@ -61,17 +64,10 @@ int main(int argc, char * argv[]) {
 
         // process interrupts if necessary
         if(frame_ms_offset % ms_per_interrupt == 0) {
-<<<<<<< 8a1ff044c593a563f101cf4446d4e68d99cdbc0b
             if(machine.accept_interrupt == 1) {
                 interrupt_cpu(&machine, interrupt);
                 interrupt ^= 0x03; // toggle between interrupts 1 and 2
             }
-
-=======
-            if(machine.accept_interrupt == 1)
-                interrupt_cpu(&machine, interrupt);
-            interrupt ^= 0x03; // toggle between interrupts 1 and 2
->>>>>>> Cleaning up some code and makefile, started linking rom file into executable at compile time through NASM
         }
 
 
@@ -121,12 +117,16 @@ int main(int argc, char * argv[]) {
         }
     }
 
+    // shutdown machine
+    shutdown_machine(&machine);
+
     // quit SDL
     SDL_DestroyWindow(window);
+    Mix_Quit();
     SDL_Quit();
 
 
     printf("Finished\n");
 
-    return 0;
+    return 1;
 }

@@ -1,10 +1,12 @@
 #include "machine.h"
 
 void interrupt_cpu(machine_t *, uint8_t);
+void load_sound_samples(machine_t *);
 
 void initialize_machine(machine_t * state) {
     memset(state->memory, 0, MEMORY_SIZE);
     memset(state->ports, 0, IO_PORTS);
+    load_sound_samples(state);
     state->a = 0;
     state->b = 0;
     state->c = 0;
@@ -25,6 +27,12 @@ void initialize_machine(machine_t * state) {
     state->ports[0] = 0x0e; // bits 1, 2, and 3 are always set
     state->ports[1] = 0x08; // bit 3 is always set
     state->ports[2] = 0x08 | (GAME_NUMBER_OF_LIVES - 3); // bit 3 is always set
+}
+
+void shutdown_machine(machine_t * state) {
+    for(uint8_t i = 0; i < SOUND_SAMPLES; i++) {
+        Mix_FreeChunk(state->samples[i]);
+    }
 }
 
 int check_machine_instruction(machine_t * state) {
@@ -143,6 +151,22 @@ uint8_t handle_input(machine_t * state, uint32_t event, uint32_t key) {
         default: ;
     }
     return result;
+}
+
+void load_sound_samples(machine_t * state) {
+    SDL_RWops * sample;
+    uint8_t * adrs[] = {
+        &_media_0, &_media_1, &_media_2, &_media_3,
+        &_media_4, &_media_5, &_media_6, &_media_7,
+        &_media_8, &_media_9, &_media_10, &_media_11,
+        &_media_12, &_media_13, &_media_14, &_media_15,
+        &_media_16, &_media_17, &_media_18, &_media_end,
+    };
+    for(uint8_t i = 0; i < SOUND_SAMPLES; i++) {
+        sample = SDL_RWFromMem((void *)adrs[i], (int)(adrs[i + 1] - adrs[i]));
+        state->samples[i] = Mix_LoadWAV_RW(sample, 0);
+        SDL_FreeRW(sample);
+    }
 }
 
 void sleep_microseconds(uint64_t microseconds) {
