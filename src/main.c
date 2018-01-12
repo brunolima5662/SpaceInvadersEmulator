@@ -10,18 +10,47 @@
 int main(int argc, char * argv[]) {
     uint8_t done = 0;
     // uint8_t fullscreen = 0;
+    FILE * rom = NULL;
     SDL_Window * window = NULL;
     SDL_Surface * screen = NULL;
     SDL_Event evt;
 
+    // declare and initialize the machine object
+    machine_t machine;
+    initialize_machine(&machine);
+
+    // read rom file into memory
+    if(argc > 1) {
+        rom = fopen(argv[1], "rb");
+        if (rom == NULL) {
+            fprintf(stderr, "ROM file invalid, exiting...");
+            exit(EXIT_FAILURE);
+        }
+    }
+    else {
+        fprintf(stderr, "No rom file specified, exiting...\n");
+        fprintf(stderr, "Usage: %s [path to rom file...]\n", argv[0]);
+        exit(EXIT_FAILURE);
+    }
+
+
+    // fetch the file size
+    fseek(rom, 0, SEEK_END);
+    uint16_t size = ftell(rom);
+    fseek(rom, 0, SEEK_SET);
+
+    // load rom into machine's ram
+    fread(&machine.memory[0], size, 1, rom);
+    fclose(rom);
+
     // start SDL library and main window
     if(SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO) < 0) {
-        printf("SDL could not initialize! SDL_Error: %s\n", SDL_GetError());
-        return 0;
+        fprintf(stderr, "SDL could not initialize! SDL_Error: %s\n", SDL_GetError());
+        exit(EXIT_FAILURE);
     }
     if(Mix_OpenAudio(11025, AUDIO_U8, 1, 512) < 0) {
-        printf( "SDL_mixer could not initialize! SDL_mixer Error: %s\n", Mix_GetError());
-        return 0;
+        fprintf(stderr, "SDL_mixer could not initialize! SDL_mixer Error: %s\n", Mix_GetError());
+        exit(EXIT_FAILURE);
     }
     window = SDL_CreateWindow(
         "Space Invaders",
@@ -34,10 +63,6 @@ int main(int argc, char * argv[]) {
     screen = SDL_GetWindowSurface(window);
     SDL_FillRect(screen, NULL, SDL_MapRGB(screen->format, 0x00, 0x00, 0x00));
     SDL_UpdateWindowSurface(window);
-
-    // declare and initialize the machine object
-    machine_t machine;
-    initialize_machine(&machine);
 
     // start the emulation loop
     uint64_t cycles = 0;
