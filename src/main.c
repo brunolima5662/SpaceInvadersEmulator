@@ -43,7 +43,7 @@ int main(int argc, char * argv[]) {
     }
     else {
         fprintf(stderr, "No rom file specified, exiting...\n");
-        fprintf(stderr, "Usage: %s [path to rom file...]\n", argv[0]);
+        fprintf(stderr, "Usage: %s <path to rom file...>\n", argv[0]);
         SDL_DestroyWindow(window);
         Mix_Quit();
         SDL_Quit();
