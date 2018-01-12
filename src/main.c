@@ -9,7 +9,6 @@
 
 int main(int argc, char * argv[]) {
     uint8_t done = 0;
-    // uint8_t fullscreen = 0;
     FILE * rom = NULL;
     SDL_Window * window = NULL;
     SDL_Surface * screen = NULL;
@@ -64,8 +63,8 @@ int main(int argc, char * argv[]) {
     // initialize SDL window and screen
     window = SDL_CreateWindow(
         "Space Invaders",
-        SDL_WINDOWPOS_UNDEFINED,
-        SDL_WINDOWPOS_UNDEFINED,
+        SDL_WINDOWPOS_CENTERED,
+        SDL_WINDOWPOS_CENTERED,
         VIDEO_Y * VIDEO_SCALE, // flip width and height since the machine's screen
         VIDEO_X * VIDEO_SCALE, // is actually flipped on its side for it to be vertical
         SDL_WINDOW_SHOWN
@@ -73,7 +72,6 @@ int main(int argc, char * argv[]) {
     screen = SDL_GetWindowSurface(window);
     SDL_FillRect(screen, NULL, SDL_MapRGB(screen->format, 0x00, 0x00, 0x00));
     SDL_UpdateWindowSurface(window);
-
 
 
     // start the emulation loop
@@ -145,10 +143,6 @@ int main(int argc, char * argv[]) {
                 case SDL_KEYDOWN:
                     key_result = handle_input(&machine, evt.type, evt.key.keysym.sym);
                     done |= (key_result == 1);
-                    // if(key_result == 2 && evt.type == SDL_KEYUP) { // toggle fullcreen
-                    //     fullscreen = fullscreen ? 0 : SDL_WINDOW_FULLSCREEN;
-                    //     SDL_SetWindowFullscreen(window, fullscreen);
-                    // }
                     break;
                 default: ;
             }
