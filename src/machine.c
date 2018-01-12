@@ -145,6 +145,8 @@ uint8_t handle_input(machine_t * state, uint32_t event, uint32_t key) {
             update_input_bit(state, 2, 5, event); break;
         case SDLK_RIGHT: // Player 2 Right Button
             update_input_bit(state, 2, 6, event); break;
+        case SDLK_h: // Play test sound
+            Mix_PlayChannel(-1, state->samples[0], 0); break;
         // commenting out fullscreen... not working right. will revisit later...
         // case SDLK_f: result = 2; break; // Fullscreen Toggle
         case SDLK_ESCAPE: result = 1; break; // Quit Emulation
@@ -165,6 +167,9 @@ void load_sound_samples(machine_t * state) {
     for(uint8_t i = 0; i < SOUND_SAMPLES; i++) {
         sample = SDL_RWFromMem((void *)adrs[i], (int)(adrs[i + 1] - adrs[i]));
         state->samples[i] = Mix_LoadWAV_RW(sample, 0);
+        if(state->samples[i] == NULL) {
+            fprintf(stderr, "SDL_mixer Error: %s\n", Mix_GetError());
+        }
         SDL_FreeRW(sample);
     }
 }

@@ -15,7 +15,18 @@ int main(int argc, char * argv[]) {
     SDL_Surface * screen = NULL;
     SDL_Event evt;
 
-    // declare and initialize the machine object
+    // start SDL library and main window
+    if(SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO) < 0) {
+        fprintf(stderr, "SDL could not initialize! SDL_Error: %s\n", SDL_GetError());
+        exit(EXIT_FAILURE);
+    }
+    if(Mix_OpenAudio(11025, AUDIO_U8, 1, 512) < 0) {
+        SDL_Quit();
+        fprintf(stderr, "SDL_mixer Initialization Error: %s\n", Mix_GetError());
+        exit(EXIT_FAILURE);
+    }
+
+    // declare and initialize machine
     machine_t machine;
     initialize_machine(&machine);
 
@@ -24,12 +35,18 @@ int main(int argc, char * argv[]) {
         rom = fopen(argv[1], "rb");
         if (rom == NULL) {
             fprintf(stderr, "ROM file invalid, exiting...");
+            SDL_DestroyWindow(window);
+            Mix_Quit();
+            SDL_Quit();
             exit(EXIT_FAILURE);
         }
     }
     else {
         fprintf(stderr, "No rom file specified, exiting...\n");
         fprintf(stderr, "Usage: %s [path to rom file...]\n", argv[0]);
+        SDL_DestroyWindow(window);
+        Mix_Quit();
+        SDL_Quit();
         exit(EXIT_FAILURE);
     }
 
@@ -43,15 +60,8 @@ int main(int argc, char * argv[]) {
     fread(&machine.memory[0], size, 1, rom);
     fclose(rom);
 
-    // start SDL library and main window
-    if(SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO) < 0) {
-        fprintf(stderr, "SDL could not initialize! SDL_Error: %s\n", SDL_GetError());
-        exit(EXIT_FAILURE);
-    }
-    if(Mix_OpenAudio(11025, AUDIO_U8, 1, 512) < 0) {
-        fprintf(stderr, "SDL_mixer could not initialize! SDL_mixer Error: %s\n", Mix_GetError());
-        exit(EXIT_FAILURE);
-    }
+
+    // initialize SDL window and screen
     window = SDL_CreateWindow(
         "Space Invaders",
         SDL_WINDOWPOS_UNDEFINED,
@@ -63,6 +73,8 @@ int main(int argc, char * argv[]) {
     screen = SDL_GetWindowSurface(window);
     SDL_FillRect(screen, NULL, SDL_MapRGB(screen->format, 0x00, 0x00, 0x00));
     SDL_UpdateWindowSurface(window);
+
+
 
     // start the emulation loop
     uint64_t cycles = 0;

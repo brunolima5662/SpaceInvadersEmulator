@@ -8,6 +8,8 @@ On macs, change the -f flag in the makefile's rom.o rule from elf64 to macho64.
 ### Dependencies
 
 * [SDL 2.0](https://www.libsdl.org/index.php)
+* [SDL_mixer 2.0](https://www.libsdl.org/projects/SDL_mixer/)
+* [Timidity](https://sourceforge.net/projects/timidity/)
 * [NASM Assembly Compiler](http://www.nasm.us/)
 
 ### Build & Install
