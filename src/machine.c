@@ -129,37 +129,34 @@ void interrupt_cpu(machine_t * state, uint8_t interrupt) {
 }
 
 void render_frame(machine_t * state, SDL_Surface * frame) {
-    unsigned char * video_ram = &state->memory[VIDEO_RAM_START];
+    uint8_t  bit;
+    uint32_t color, scanline, offset, x_offset, x, y, _x, _y;
     uint32_t white = SDL_MapRGB(frame->format, 0xff, 0xff, 0xff);
     uint32_t black = SDL_MapRGB(frame->format, 0x00, 0x00, 0x00);
-    uint32_t color;
     uint32_t scaled_w = VIDEO_Y * VIDEO_SCALE;
     uint32_t scaled_h = VIDEO_X * VIDEO_SCALE;
     uint32_t scaled_size = scaled_w * scaled_h;
-
+    uint32_t * pixels = (uint32_t *)frame->pixels;
+    uint32_t scaled_row_size  = (scaled_w * VIDEO_SCALE);
+    uint32_t scaled_row_bits  = scaled_row_size * 8;
+    unsigned char * video_ram = &state->memory[VIDEO_RAM_START];
+    unsigned char pixel;
 
     SDL_LockSurface(frame);
-    uint32_t * pixels = (uint32_t *)frame->pixels;
-    uint16_t x, y, bit;
-    uint32_t _x, _y, y_limit = (VIDEO_SCALE * scaled_w);
-    uint32_t scanline, offset, y_offset = (scaled_w * VIDEO_SCALE);
-    uint32_t scaled_byte_offset = VIDEO_SCALE * scaled_w * 8;
-    int32_t x_offset;
-    unsigned char pixel;
     for(y = 0; y < VIDEO_Y; y++) {
-        x_offset = (y * VIDEO_SCALE) - y_offset;
+        x_offset = (y * VIDEO_SCALE) - scaled_row_size;
         scanline = (y * VIDEO_SCANLINE);
         for(x = 0; x < VIDEO_SCANLINE; x++) {
             pixel   = video_ram[scanline + x];
-            offset  = scaled_size - (scaled_byte_offset * x) + x_offset;
+            offset  = scaled_size - (scaled_row_bits * x) + x_offset;
             for(bit = 0; bit < 8; bit++) {
                 color = ((pixel >> bit) & 0x01) ? white : black;
-                for(_y = 0; _y < y_limit; _y += scaled_w) {
+                for(_y = 0; _y < scaled_row_size; _y += scaled_w) {
                     for(_x = 0; _x < VIDEO_SCALE; _x++) {
                         pixels[offset + _x + _y] = color;
                     }
                 }
-                offset -= y_offset;
+                offset -= scaled_row_size;
             }
         }
     }
@@ -202,12 +199,9 @@ uint8_t handle_input(machine_t * state, uint32_t event, uint32_t key) {
 
 void load_sound_samples(machine_t * state) {
     SDL_RWops * sample;
-    uint8_t * adrs[] = {
-        &_media_0, &_media_1, &_media_2, &_media_3,
-        &_media_4, &_media_5, &_media_6, &_media_7,
-        &_media_8, &_media_9, &_media_10, &_media_11,
-        &_media_12, &_media_13, &_media_14, &_media_15,
-        &_media_16, &_media_17, &_media_18, &_media_end,
+    uint8_t * adrs[] = { &_media_0,
+        &_media_1, &_media_2, &_media_3, &_media_4,
+        &_media_5, &_media_6, &_media_7, &_media_8,
     };
     for(uint8_t i = 0; i < SOUND_SAMPLES; i++) {
         sample = SDL_RWFromMem((void *)adrs[i], (int)(adrs[i + 1] - adrs[i]));

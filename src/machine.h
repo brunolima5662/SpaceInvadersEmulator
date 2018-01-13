@@ -20,7 +20,7 @@
 #define VIDEO_HZ 60 // in hertz
 #define CPU_KHZ 4000 // in kilohertz
 #define IO_PORTS 8
-#define SOUND_SAMPLES 19
+#define SOUND_SAMPLES 9
 
 #define GAME_NUMBER_OF_LIVES 3 // valid options: 3 - 6
 

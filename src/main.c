@@ -88,38 +88,46 @@ int main(int argc, char * argv[]) {
     // start the emulation loop
     uint32_t cycles = 0;
     uint16_t ms_per_frame = (uint32_t)((1.0f / VIDEO_HZ) * 1000);
-    uint16_t ms_per_interrupt = ms_per_frame / 2;
-    uint8_t interrupt = 1, frame_ms_offset = 0;
+    uint32_t cycles_per_frame = ms_per_frame * CPU_KHZ;
+    uint16_t cycles_per_interrupt = cycles_per_frame / 2;
+    uint8_t interrupt = 1;
 
     // all time delta calculations are done in microseconds
     struct timespec cpu_timer;
     uint64_t cpu_time_start = 0, cpu_time_delta = 0;
+    clock_gettime(CLOCK_REALTIME, &cpu_timer);
+    cpu_time_start = cpu_timer.tv_nsec;
 
+    // the following loop runs once per frame (~16 ms)
     while(done == 0) {
-        cycles = 0;
 
-        // store the cpu start time for this millisecond batch of operations
+        // render next frame
+        render_frame(&machine, screen);
+        SDL_UpdateTexture(texture, NULL, screen->pixels, screen->pitch);
+        SDL_RenderClear(renderer);
+        SDL_RenderCopy(renderer, texture, NULL, NULL);
+        SDL_RenderPresent(renderer);
+
+        // if the last batch of cycles and rendering took less than the
+        // amount of time between frames (~16 ms), then sleep for the
+        // remainder of that time
+        clock_gettime(CLOCK_REALTIME, &cpu_timer);
+        if(cpu_timer.tv_nsec >= cpu_time_start)
+            cpu_time_delta = (cpu_timer.tv_nsec - cpu_time_start) / 1000;
+        else
+            cpu_time_delta = (1000000000UL - cpu_time_start + cpu_timer.tv_nsec) / 1000;
+        if(cpu_time_delta < 16000)
+            sleep_microseconds(16000 - cpu_time_delta);
+
+        // store current time to calculate the processing time delta
+        // during the next frame render
         clock_gettime(CLOCK_REALTIME, &cpu_timer);
         cpu_time_start = cpu_timer.tv_nsec;
 
-        // render new frame if necessary
-        if(frame_ms_offset == ms_per_frame) {
-            render_frame(&machine, screen);
-            SDL_UpdateTexture(texture, NULL, screen->pixels, screen->pitch);
-            SDL_RenderClear(renderer);
-            SDL_RenderCopy(renderer, texture, NULL, NULL);
-            SDL_RenderPresent(renderer);
-        }
+        // perform a frame's worth of cpu operations...
+        cycles = 0;
+        while(cycles < cycles_per_frame) {
 
-        // process interrupts if necessary
-        if(frame_ms_offset % ms_per_interrupt == 0) {
-
-            if(machine.accept_interrupt == 1) {
-                interrupt_cpu(&machine, interrupt);
-                interrupt ^= 0x03; // toggle between interrupts 1 and 2
-            }
-        }
-        while(cycles < CPU_KHZ) {
             // add opcode's cycle number to cycles accumulator
             cycles += clock_cycles[machine.memory[machine.pc]];
 
@@ -130,23 +138,23 @@ int main(int argc, char * argv[]) {
             if(check_machine_instruction(&machine) == 0) {
                 done = !emulate_next_instruction(&machine);
             }
+
+            if(interrupt == 1 && cycles >= cycles_per_interrupt) {
+                // process first interrupt at around half way through
+                // the cycles per frame
+                if(machine.accept_interrupt == 1) {
+                    interrupt_cpu(&machine, interrupt);
+                    interrupt ^= 0x03; // toggle between interrupts 1 and 2
+                }
+            }
+        }
+        // process second interrupt
+        if(machine.accept_interrupt == 1) {
+            interrupt_cpu(&machine, interrupt);
+            interrupt ^= 0x03; // toggle between interrupts 1 and 2
         }
 
-        // once the emulator has processed the amount of clock cycles per
-        // millisecond, sleep until it's time to process the next millisecond
-        // batch of clock cycles
-        if(frame_ms_offset >= 16)
-            frame_ms_offset = 1;
-        else
-            frame_ms_offset += 1;
-        clock_gettime(CLOCK_REALTIME, &cpu_timer);
-        if(cpu_timer.tv_nsec >= cpu_time_start)
-            cpu_time_delta = (cpu_timer.tv_nsec - cpu_time_start) / 1000;
-        else
-            cpu_time_delta = (1000000000UL - cpu_time_start + cpu_timer.tv_nsec) / 1000;
-        if(cpu_time_delta < 1000)
-            sleep_microseconds(1000 - cpu_time_delta);
-
+        // check for new key events...
         uint8_t key_result;
         while(SDL_PollEvent(&evt)) {
             switch(evt.type) {
@@ -165,6 +173,7 @@ int main(int argc, char * argv[]) {
     shutdown_machine(&machine);
 
     // quit SDL
+    SDL_FreeSurface(screen);
     SDL_DestroyTexture(texture);
     SDL_DestroyRenderer(renderer);
     SDL_DestroyWindow(window);
