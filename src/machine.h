@@ -42,6 +42,10 @@ typedef struct machine {
     unsigned char memory[MEMORY_SIZE];
     uint8_t ports[IO_PORTS];
 
+    // using for processing sound
+    uint8_t port3_cache;
+    uint8_t port5_cache;
+
     // shift operation hardware specific to
     // the space invaders machine (not part
     // of the 8080 cpu)
