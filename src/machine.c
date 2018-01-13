@@ -59,9 +59,12 @@ int check_machine_instruction(machine_t * state) {
             case 2:
                 state->shift_offset = state->a & 0x07;
                 break;
-            case 3: // sound
-                port = state->ports[op[1]];
-                changes = port ^ state->port3_cache;
+            case 3: // play sound
+                // get which bits changed since last time by doing an
+                // XOR with the port's cache value
+                changes = state->ports[op[1]] ^ state->a;
+                port = state->a;
+                state->ports[op[1]] = state->a;
                 if(changes & 0x01) { // ufo sound
                     if(port & 0x01) // start sound
                         sound_res = Mix_PlayChannel(1, state->samples[0], -1);
@@ -82,9 +85,12 @@ int check_machine_instruction(machine_t * state) {
                 state->shift_lo = state->shift_hi;
                 state->shift_hi = state->a;
                 break;
-            case 5:
-                port = state->ports[op[1]];
-                changes = port ^ state->port5_cache;
+            case 5: // play sound
+                // get which bits changed since last time by doing an
+                // XOR with the port's cache value
+                changes = state->ports[op[1]] ^ state->a;
+                port = state->a;
+                state->ports[op[1]] = state->a;
                 if(changes & port & 0x01) // fleet sound 1
                     sound_res = Mix_PlayChannel(5, state->samples[4], 0);
                 if(changes & port & 0x02) // fleet sound 2
