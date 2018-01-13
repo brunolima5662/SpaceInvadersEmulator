@@ -9,9 +9,12 @@
 
 int main(int argc, char * argv[]) {
     uint8_t done = 0;
+    uint32_t width = (VIDEO_X * VIDEO_SCALE), height = (VIDEO_Y * VIDEO_SCALE);
     FILE * rom = NULL;
-    SDL_Window * window = NULL;
-    SDL_Surface * screen = NULL;
+    SDL_Window   * window   = NULL;
+    SDL_Renderer * renderer = NULL;
+    SDL_Surface  * screen   = NULL;
+    SDL_Texture  * texture  = NULL;
     SDL_Event evt;
 
     // start SDL library and main window
@@ -34,7 +37,6 @@ int main(int argc, char * argv[]) {
         rom = fopen(argv[1], "rb");
         if (rom == NULL) {
             fprintf(stderr, "ROM file invalid, exiting...");
-            SDL_DestroyWindow(window);
             Mix_Quit();
             SDL_Quit();
             exit(EXIT_FAILURE);
@@ -43,7 +45,6 @@ int main(int argc, char * argv[]) {
     else {
         fprintf(stderr, "No rom file specified, exiting...\n");
         fprintf(stderr, "Usage: %s <path to rom file...>\n", argv[0]);
-        SDL_DestroyWindow(window);
         Mix_Quit();
         SDL_Quit();
         exit(EXIT_FAILURE);
@@ -65,17 +66,27 @@ int main(int argc, char * argv[]) {
         "Space Invaders",
         SDL_WINDOWPOS_CENTERED,
         SDL_WINDOWPOS_CENTERED,
-        VIDEO_Y * VIDEO_SCALE, // flip width and height since the machine's screen
-        VIDEO_X * VIDEO_SCALE, // is actually flipped on its side for it to be vertical
+        height, // flip width and height since the machine's screen
+        width, // is actually flipped on its side for it to be vertical
         SDL_WINDOW_SHOWN
     );
-    screen = SDL_GetWindowSurface(window);
-    SDL_FillRect(screen, NULL, SDL_MapRGB(screen->format, 0x00, 0x00, 0x00));
-    SDL_UpdateWindowSurface(window);
+    renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
+    screen = SDL_CreateRGBSurface(0, height, width, 32, 0x00FF0000, 0x0000FF00, 0x000000FF, 0xFF000000);
+    texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_STREAMING, height, width);
+    //SDL_FillRect(screen, NULL, SDL_MapRGB(screen->format, 0x00, 0x00, 0x00));
+    //SDL_UpdateWindowSurface(window);
 
+    if(!texture || !renderer) {
+        fprintf(stderr, "SDL Renderer/Texture Error: %s\n", Mix_GetError());
+        SDL_DestroyWindow(window);
+        Mix_Quit();
+        SDL_Quit();
+        exit(EXIT_FAILURE);
+    }
+    //SDL_SetRenderDrawColor(renderer, 0x00, 0x00, 0x00, 0xff);
 
     // start the emulation loop
-    uint64_t cycles = 0;
+    uint32_t cycles = 0;
     uint16_t ms_per_frame = (uint32_t)((1.0f / VIDEO_HZ) * 1000);
     uint16_t ms_per_interrupt = ms_per_frame / 2;
     uint8_t interrupt = 1, frame_ms_offset = 0;
@@ -94,7 +105,10 @@ int main(int argc, char * argv[]) {
         // render new frame if necessary
         if(frame_ms_offset == ms_per_frame) {
             render_frame(&machine, screen);
-            SDL_UpdateWindowSurface(window);
+            SDL_UpdateTexture(texture, NULL, screen->pixels, screen->pitch);
+            SDL_RenderClear(renderer);
+            SDL_RenderCopy(renderer, texture, NULL, NULL);
+            SDL_RenderPresent(renderer);
         }
 
         // process interrupts if necessary
@@ -105,8 +119,6 @@ int main(int argc, char * argv[]) {
                 interrupt ^= 0x03; // toggle between interrupts 1 and 2
             }
         }
-
-
         while(cycles < CPU_KHZ) {
             // add opcode's cycle number to cycles accumulator
             cycles += clock_cycles[machine.memory[machine.pc]];
@@ -153,6 +165,8 @@ int main(int argc, char * argv[]) {
     shutdown_machine(&machine);
 
     // quit SDL
+    SDL_DestroyTexture(texture);
+    SDL_DestroyRenderer(renderer);
     SDL_DestroyWindow(window);
     Mix_Quit();
     SDL_Quit();

@@ -64,26 +64,28 @@ int check_machine_instruction(machine_t * state) {
                 // get which bits changed since last time by doing an
                 // XOR with the port's cache value
                 changes = state->ports[op[1]] ^ state->a;
-                port = state->a;
-                state->ports[op[1]] = state->a;
-                if(changes & 0x01) { // ufo sound
-                    if(port & 0x01) { // start sound
-                        sound_res = Mix_PlayChannel(-1, state->samples[0], -1);
-                        state->channels[0] = sound_res;
+                if(changes) {
+                    port = state->a;
+                    state->ports[op[1]] = state->a;
+                    if(changes & 0x01) { // ufo sound
+                        if(port & 0x01) { // start sound
+                            sound_res = Mix_PlayChannel(-1, state->samples[0], -1);
+                            state->channels[0] = sound_res;
+                        }
+                        else { // stop sound
+                            sound_res = Mix_HaltChannel(state->channels[0]);
+                            state->channels[0] = 0;
+                        }
                     }
-                    else { // stop sound
-                        sound_res = Mix_HaltChannel(state->channels[0]);
-                        state->channels[0] = 0;
-                    }
+                    if(changes & port & 0x02) // shot sound
+                        sound_res = Mix_PlayChannel(-1, state->samples[1], 0);
+                    if(changes & port & 0x04) // player hit sound
+                        sound_res = Mix_PlayChannel(-1, state->samples[2], 0);
+                    if(changes & port & 0x08) // alien hit sound
+                        sound_res = Mix_PlayChannel(-1, state->samples[3], 0);
+                    if(sound_res == -1)
+                        fprintf(stderr, "SDL_mixer Error: %s\n", Mix_GetError());
                 }
-                if(changes & port & 0x02) // shot sound
-                    sound_res = Mix_PlayChannel(-1, state->samples[1], 0);
-                if(changes & port & 0x04) // player hit sound
-                    sound_res = Mix_PlayChannel(-1, state->samples[2], 0);
-                if(changes & port & 0x08) // alien hit sound
-                    sound_res = Mix_PlayChannel(-1, state->samples[3], 0);
-                if(sound_res == -1)
-                    fprintf(stderr, "SDL_mixer Error: %s\n", Mix_GetError());
                 break;
             case 4:
                 state->shift_lo = state->shift_hi;
@@ -93,20 +95,22 @@ int check_machine_instruction(machine_t * state) {
                 // get which bits changed since last time by doing an
                 // XOR with the port's cache value
                 changes = state->ports[op[1]] ^ state->a;
-                port = state->a;
-                state->ports[op[1]] = state->a;
-                if(changes & port & 0x01) // fleet sound 1
-                    sound_res = Mix_PlayChannel(-1, state->samples[4], 0);
-                if(changes & port & 0x02) // fleet sound 2
-                    sound_res = Mix_PlayChannel(-1, state->samples[5], 0);
-                if(changes & port & 0x04) // fleet sound 3
-                    sound_res = Mix_PlayChannel(-1, state->samples[6], 0);
-                if(changes & port & 0x08) // fleet sound 4
-                    sound_res = Mix_PlayChannel(-1, state->samples[7], 0);
-                if(changes & port & 0x0f) // UFO hit sound
-                    sound_res = Mix_PlayChannel(-1, state->samples[8], 0);
-                if(sound_res == -1)
-                    fprintf(stderr, "SDL_mixer Error: %s\n", Mix_GetError());
+                if(changes) {
+                    port = state->a;
+                    state->ports[op[1]] = state->a;
+                    if(changes & port & 0x01) // fleet sound 1
+                        sound_res = Mix_PlayChannel(-1, state->samples[4], 0);
+                    if(changes & port & 0x02) // fleet sound 2
+                        sound_res = Mix_PlayChannel(-1, state->samples[5], 0);
+                    if(changes & port & 0x04) // fleet sound 3
+                        sound_res = Mix_PlayChannel(-1, state->samples[6], 0);
+                    if(changes & port & 0x08) // fleet sound 4
+                        sound_res = Mix_PlayChannel(-1, state->samples[7], 0);
+                    if(changes & port & 0x10) // UFO hit sound
+                        sound_res = Mix_PlayChannel(-1, state->samples[8], 0);
+                    if(sound_res == -1)
+                        fprintf(stderr, "SDL_mixer Error: %s\n", Mix_GetError());
+                }
                 break;
             default: ;
         }
@@ -124,15 +128,6 @@ void interrupt_cpu(machine_t * state, uint8_t interrupt) {
     state->accept_interrupt = 0;
 }
 
-void render_scaled_pixel(uint32_t * pixels, uint32_t scaled_w, uint32_t color) {
-    uint32_t x, y, y_limit = (VIDEO_SCALE * scaled_w);
-    for(y = 0; y < y_limit; y += scaled_w) {
-        for(x = 0; x < VIDEO_SCALE; x++) {
-            pixels[x + y] = color;
-        }
-    }
-}
-
 void render_frame(machine_t * state, SDL_Surface * frame) {
     unsigned char * video_ram = &state->memory[VIDEO_RAM_START];
     uint32_t white = SDL_MapRGB(frame->format, 0xff, 0xff, 0xff);
@@ -146,18 +141,25 @@ void render_frame(machine_t * state, SDL_Surface * frame) {
     SDL_LockSurface(frame);
     uint32_t * pixels = (uint32_t *)frame->pixels;
     uint16_t x, y, bit;
-    uint32_t offset;
+    uint32_t _x, _y, y_limit = (VIDEO_SCALE * scaled_w);
+    uint32_t scanline, offset, y_offset = (scaled_w * VIDEO_SCALE);
+    uint32_t scaled_byte_offset = VIDEO_SCALE * scaled_w * 8;
+    int32_t x_offset;
     unsigned char pixel;
     for(y = 0; y < VIDEO_Y; y++) {
+        x_offset = (y * VIDEO_SCALE) - y_offset;
+        scanline = (y * VIDEO_SCANLINE);
         for(x = 0; x < VIDEO_SCANLINE; x++) {
-            pixel   = video_ram[(y * VIDEO_SCANLINE) + x];
-            offset  = scaled_size - ((x * VIDEO_SCALE * 8) * scaled_w);
-            offset += (y * VIDEO_SCALE);
-            offset -= (scaled_w * VIDEO_SCALE);
+            pixel   = video_ram[scanline + x];
+            offset  = scaled_size - (scaled_byte_offset * x) + x_offset;
             for(bit = 0; bit < 8; bit++) {
                 color = ((pixel >> bit) & 0x01) ? white : black;
-                render_scaled_pixel(&pixels[offset], scaled_w, color);
-                offset -= (scaled_w * VIDEO_SCALE);
+                for(_y = 0; _y < y_limit; _y += scaled_w) {
+                    for(_x = 0; _x < VIDEO_SCALE; _x++) {
+                        pixels[offset + _x + _y] = color;
+                    }
+                }
+                offset -= y_offset;
             }
         }
     }

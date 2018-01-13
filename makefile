@@ -37,7 +37,7 @@ build/emulator.o: src/emulator.c src/machine.h
 build/disassembler.o: src/disassembler.c
 	cc -c src/disassembler.c -o build/disassembler.o $(FLAGS)
 
-build/machine.o: src/machine.c src/media.h
+build/machine.o: src/machine.c src/media.h src/machine.h
 	cc -c src/machine.c -o build/machine.o $(FLAGS) $(LIBS)
 
 build/media.o: src/media.asm
