@@ -42,10 +42,6 @@ typedef struct machine {
     unsigned char memory[MEMORY_SIZE];
     uint8_t ports[IO_PORTS];
 
-    // using for processing sound
-    uint8_t port3_cache;
-    uint8_t port5_cache;
-
     // shift operation hardware specific to
     // the space invaders machine (not part
     // of the 8080 cpu)
@@ -58,6 +54,7 @@ typedef struct machine {
 
     // sound samples
     Mix_Chunk * samples[SOUND_SAMPLES];
+    int32_t     channels[SOUND_SAMPLES];
 } machine_t;
 
 void initialize_machine(machine_t *);

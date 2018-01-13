@@ -6,6 +6,7 @@ void load_sound_samples(machine_t *);
 void initialize_machine(machine_t * state) {
     memset(state->memory, 0, MEMORY_SIZE);
     memset(state->ports, 0, IO_PORTS);
+    memset(state->channels, 0, SOUND_SAMPLES * 4);
     load_sound_samples(state);
     state->a = 0;
     state->b = 0;
@@ -66,20 +67,23 @@ int check_machine_instruction(machine_t * state) {
                 port = state->a;
                 state->ports[op[1]] = state->a;
                 if(changes & 0x01) { // ufo sound
-                    if(port & 0x01) // start sound
-                        sound_res = Mix_PlayChannel(1, state->samples[0], -1);
-                    else // stop sound
-                        sound_res = Mix_HaltChannel(1);
+                    if(port & 0x01) { // start sound
+                        sound_res = Mix_PlayChannel(-1, state->samples[0], -1);
+                        state->channels[0] = sound_res;
+                    }
+                    else { // stop sound
+                        sound_res = Mix_HaltChannel(state->channels[0]);
+                        state->channels[0] = 0;
+                    }
                 }
                 if(changes & port & 0x02) // shot sound
-                    sound_res = Mix_PlayChannel(2, state->samples[1], 0);
+                    sound_res = Mix_PlayChannel(-1, state->samples[1], 0);
                 if(changes & port & 0x04) // player hit sound
-                    sound_res = Mix_PlayChannel(3, state->samples[2], 0);
+                    sound_res = Mix_PlayChannel(-1, state->samples[2], 0);
                 if(changes & port & 0x08) // alien hit sound
-                    sound_res = Mix_PlayChannel(4, state->samples[3], 0);
+                    sound_res = Mix_PlayChannel(-1, state->samples[3], 0);
                 if(sound_res == -1)
                     fprintf(stderr, "SDL_mixer Error: %s\n", Mix_GetError());
-                state->port3_cache = state->ports[op[1]];
                 break;
             case 4:
                 state->shift_lo = state->shift_hi;
@@ -92,18 +96,17 @@ int check_machine_instruction(machine_t * state) {
                 port = state->a;
                 state->ports[op[1]] = state->a;
                 if(changes & port & 0x01) // fleet sound 1
-                    sound_res = Mix_PlayChannel(5, state->samples[4], 0);
+                    sound_res = Mix_PlayChannel(-1, state->samples[4], 0);
                 if(changes & port & 0x02) // fleet sound 2
-                    sound_res = Mix_PlayChannel(6, state->samples[5], 0);
+                    sound_res = Mix_PlayChannel(-1, state->samples[5], 0);
                 if(changes & port & 0x04) // fleet sound 3
-                    sound_res = Mix_PlayChannel(7, state->samples[6], 0);
+                    sound_res = Mix_PlayChannel(-1, state->samples[6], 0);
                 if(changes & port & 0x08) // fleet sound 4
-                    sound_res = Mix_PlayChannel(8, state->samples[7], 0);
+                    sound_res = Mix_PlayChannel(-1, state->samples[7], 0);
                 if(changes & port & 0x0f) // UFO hit sound
-                    sound_res = Mix_PlayChannel(9, state->samples[8], 0);
+                    sound_res = Mix_PlayChannel(-1, state->samples[8], 0);
                 if(sound_res == -1)
                     fprintf(stderr, "SDL_mixer Error: %s\n", Mix_GetError());
-                state->port5_cache = state->ports[op[1]];
                 break;
             default: ;
         }
