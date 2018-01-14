@@ -9,6 +9,7 @@
 
 int main(int argc, char * argv[]) {
     uint8_t done = 0;
+    int volume = -1;
     uint32_t width = (VIDEO_X * VIDEO_SCALE), height = (VIDEO_Y * VIDEO_SCALE);
     FILE * rom = NULL;
     SDL_Window   * window   = NULL;
@@ -155,14 +156,24 @@ int main(int argc, char * argv[]) {
         }
 
         // check for new key events...
-        uint8_t key_result;
+        SI_KEY_RESULT key_result;
         while(SDL_PollEvent(&evt)) {
             switch(evt.type) {
                 case SDL_QUIT: done = 1; break;
                 case SDL_KEYUP:
                 case SDL_KEYDOWN:
                     key_result = handle_input(&machine, evt.type, evt.key.keysym.sym);
-                    done |= (key_result == 1);
+                    done |= (key_result == SI_KEY_RESULT_EXIT);
+                    if(key_result == SI_KEY_RESULT_TOGGLE_MUTE && evt.type == SDL_KEYUP) {
+                        if(volume < 0) {
+                            volume = Mix_Volume(-1, -1);
+                            Mix_Volume(-1, 0);
+                        }
+                        else {
+                            Mix_Volume(-1, volume);
+                            volume = -1;
+                        }
+                    }
                     break;
                 default: ;
             }

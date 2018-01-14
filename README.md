@@ -36,4 +36,5 @@ My attempt at creating an emulator for Space Invaders (Intel 8080 CPU).
     * Shoot: **Keypad Enter**
     * Move Left: **Left Keypad Arrow**
     * Move Right: **Right Keypad Arrow**
+* Toggle Mute: **M**
 * Quit Emulation: **Escape**

@@ -170,8 +170,8 @@ void update_input_bit(machine_t * state, uint8_t port, uint8_t bit, uint32_t eve
         state->ports[port] &= ~(1 << bit);
 }
 
-uint8_t handle_input(machine_t * state, uint32_t event, uint32_t key) {
-    uint8_t result = 0;
+SI_KEY_RESULT handle_input(machine_t * state, uint32_t event, uint32_t key) {
+    SI_KEY_RESULT result = SI_KEY_RESULT_OK;
     switch(key) {
         case SDLK_c: // Coin
             update_input_bit(state, 1, 0, event); break;
@@ -191,7 +191,8 @@ uint8_t handle_input(machine_t * state, uint32_t event, uint32_t key) {
             update_input_bit(state, 2, 5, event); break;
         case SDLK_RIGHT: // Player 2 Right Button
             update_input_bit(state, 2, 6, event); break;
-        case SDLK_ESCAPE: result = 1; break; // Quit Emulation
+        case SDLK_m: result = SI_KEY_RESULT_TOGGLE_MUTE; break; // Mute Sound
+        case SDLK_ESCAPE: result = SI_KEY_RESULT_EXIT; break; // Quit Emulation
         default: ;
     }
     return result;
