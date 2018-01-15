@@ -25,6 +25,8 @@ My attempt at creating an emulator for Space Invaders (Intel 8080 CPU).
 
 ### Keyboard Controls
 
+* Pause: **P**
+* Reset: **R**
 * Insert Coin: **C**
 * Player 1:
     * Start: **1**

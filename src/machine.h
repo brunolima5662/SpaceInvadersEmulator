@@ -29,7 +29,8 @@ typedef enum SI_KEY_RESULT {
     SI_KEY_RESULT_OK,
     SI_KEY_RESULT_EXIT,
     SI_KEY_RESULT_FULLSCREEN,
-    SI_KEY_RESULT_TOGGLE_MUTE
+    SI_KEY_RESULT_TOGGLE_MUTE,
+    SI_KEY_RESULT_PAUSE
 } SI_KEY_RESULT;
 
 // machine struct
@@ -48,7 +49,8 @@ typedef struct machine {
     uint8_t  p;
     uint8_t  cy;
     unsigned char memory[MEMORY_SIZE];
-    uint8_t ports[IO_PORTS];
+    uint8_t ports_in[IO_PORTS];
+    uint8_t ports_out[IO_PORTS];
 
     // shift operation hardware specific to
     // the space invaders machine (not part

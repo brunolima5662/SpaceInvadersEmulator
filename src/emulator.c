@@ -819,7 +819,7 @@ uint8_t emulate_next_instruction(machine_t * state) {
                 state->pc += 2;
 			}
             break;
-        case 0xd3: state->ports[op[1]] = state->a; state->pc += 1; break;
+        case 0xd3: state->ports_out[op[1]] = state->a; state->pc += 1; break;
         case 0xd4:
             if(state->cy == 0) {
                 result = state->pc + 3;
@@ -867,7 +867,7 @@ uint8_t emulate_next_instruction(machine_t * state) {
                 state->pc += 2;
 			}
             break;
-        case 0xdb: state->a = state->ports[op[1]]; state->pc += 1; break;
+        case 0xdb: state->a = state->ports_in[op[1]]; state->pc += 1; break;
         case 0xdc:
             if(state->cy != 0) {
                 result = state->pc + 3;

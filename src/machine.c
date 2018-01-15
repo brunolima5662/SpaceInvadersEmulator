@@ -1,13 +1,19 @@
 #include "machine.h"
 
 void interrupt_cpu(machine_t *, uint8_t);
+void reset_program(machine_t *);
 void load_sound_samples(machine_t *);
 
 void initialize_machine(machine_t * state) {
     memset(state->memory, 0, MEMORY_SIZE);
-    memset(state->ports, 0, IO_PORTS);
     memset(state->channels, 0, SOUND_SAMPLES * 4);
     load_sound_samples(state);
+    reset_program(state);
+}
+
+void reset_program(machine_t * state) {
+    memset(state->ports_in, 0, IO_PORTS);
+    memset(state->ports_out, 0, IO_PORTS);
     state->a = 0;
     state->b = 0;
     state->c = 0;
@@ -25,9 +31,10 @@ void initialize_machine(machine_t * state) {
     state->shift_lo = 0;
     state->shift_offset = 0;
     state->accept_interrupt = 0;
-    state->ports[0] = 0x0e; // bits 1, 2, and 3 are always set
-    state->ports[1] = 0x08; // bit 3 is always set
-    state->ports[2] = 0x08 | (GAME_NUMBER_OF_LIVES - 3); // bit 3 is always set
+    state->ports_in[0] = 0x0e; // bits 1, 2, and 3 are always set
+    state->ports_in[1] = 0x08; // bit 3 is always set
+    state->ports_in[2] = 0x08 | (GAME_NUMBER_OF_LIVES - 3); // bit 3 is always set
+
 }
 
 void shutdown_machine(machine_t * state) {
@@ -44,8 +51,8 @@ int check_machine_instruction(machine_t * state) {
     if(*op == 0xdb) { // IN
         switch(op[1]) { // port switch
             case 0: state->a = 1; break;
-            case 1: state->a = state->ports[op[1]]; break;
-            case 2: break;
+            case 1:
+            case 2: state->a = state->ports_in[op[1]]; break;
             case 3:
                 value = (state->shift_hi << 8) | state->shift_lo;
                 state->a = (uint8_t)((value >> (8 - state->shift_offset)) & 0xff);
@@ -63,10 +70,10 @@ int check_machine_instruction(machine_t * state) {
             case 3: // play sound
                 // get which bits changed since last time by doing an
                 // XOR with the port's cache value
-                changes = state->ports[op[1]] ^ state->a;
+                changes = state->ports_out[op[1]] ^ state->a;
                 if(changes) {
                     port = state->a;
-                    state->ports[op[1]] = state->a;
+                    state->ports_out[op[1]] = state->a;
                     if(changes & 0x01) { // ufo sound
                         if(port & 0x01) { // start sound
                             sound_res = Mix_PlayChannel(-1, state->samples[0], -1);
@@ -94,10 +101,10 @@ int check_machine_instruction(machine_t * state) {
             case 5: // play sound
                 // get which bits changed since last time by doing an
                 // XOR with the port's cache value
-                changes = state->ports[op[1]] ^ state->a;
+                changes = state->ports_out[op[1]] ^ state->a;
                 if(changes) {
                     port = state->a;
-                    state->ports[op[1]] = state->a;
+                    state->ports_out[op[1]] = state->a;
                     if(changes & port & 0x01) // fleet sound 1
                         sound_res = Mix_PlayChannel(-1, state->samples[4], 0);
                     if(changes & port & 0x02) // fleet sound 2
@@ -154,9 +161,9 @@ void render_screen(machine_t * state, SDL_Surface * screen) {
 
 void update_input_bit(machine_t * state, uint8_t port, uint8_t bit, uint32_t event) {
     if(event == SDL_KEYDOWN)
-        state->ports[port] |= (1 << bit);
+        state->ports_in[port] |= (1 << bit);
     else
-        state->ports[port] &= ~(1 << bit);
+        state->ports_in[port] &= ~(1 << bit);
 }
 
 SI_KEY_RESULT handle_input(machine_t * state, uint32_t event, uint32_t key) {
@@ -180,6 +187,8 @@ SI_KEY_RESULT handle_input(machine_t * state, uint32_t event, uint32_t key) {
             update_input_bit(state, 2, 5, event); break;
         case SDLK_RIGHT: // Player 2 Right Button
             update_input_bit(state, 2, 6, event); break;
+        case SDLK_r: reset_program(state); break; // Reset
+        case SDLK_p: result = SI_KEY_RESULT_PAUSE; break; // Pause / Unpause
         case SDLK_m: result = SI_KEY_RESULT_TOGGLE_MUTE; break; // Mute Sound
         case SDLK_ESCAPE: result = SI_KEY_RESULT_EXIT; break; // Quit Emulation
         default: ;
@@ -191,7 +200,7 @@ void load_sound_samples(machine_t * state) {
     SDL_RWops * sample;
     uint8_t * adrs[] = { &_media_0,
         &_media_1, &_media_2, &_media_3, &_media_4,
-        &_media_5, &_media_6, &_media_7, &_media_8,
+        &_media_5, &_media_6, &_media_7, &_media_8
     };
     for(uint8_t i = 0; i < SOUND_SAMPLES; i++) {
         sample = SDL_RWFromMem((void *)adrs[i], (int)(adrs[i + 1] - adrs[i]));

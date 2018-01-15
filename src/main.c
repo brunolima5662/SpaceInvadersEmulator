@@ -8,7 +8,7 @@
 #include "disassembler.h"
 
 int main(int argc, char * argv[]) {
-    uint8_t done = 0;
+    uint8_t done = 0, paused = 0;
     int volume = -1;
     FILE * rom = NULL;
     SDL_Event      evt;
@@ -101,12 +101,14 @@ int main(int argc, char * argv[]) {
     // the following loop runs once per frame (~16 ms)
     while(done == 0) {
 
-        // render next frame
-        render_screen(&machine, screen);
-        SDL_UpdateTexture(texture, NULL, screen->pixels, screen->pitch);
-        SDL_RenderClear(renderer);
-        SDL_RenderCopy(renderer, texture, NULL, NULL);
-        SDL_RenderPresent(renderer);
+        if(!paused) {
+            // render next frame
+            render_screen(&machine, screen);
+            SDL_UpdateTexture(texture, NULL, screen->pixels, screen->pitch);
+            SDL_RenderClear(renderer);
+            SDL_RenderCopy(renderer, texture, NULL, NULL);
+            SDL_RenderPresent(renderer);
+        }
 
         // if the last batch of cycles and rendering took less than the
         // amount of time between frames (~16 ms), then sleep for the
@@ -119,39 +121,42 @@ int main(int argc, char * argv[]) {
         if(cpu_time_delta < 16000)
             sleep_microseconds(16000 - cpu_time_delta);
 
-        // store current time to calculate the processing time delta
-        // during the next frame render
-        clock_gettime(CLOCK_REALTIME, &cpu_timer);
-        cpu_time_start = cpu_timer.tv_nsec;
+            // store current time to calculate the processing time delta
+            // during the next frame render
+            clock_gettime(CLOCK_REALTIME, &cpu_timer);
+            cpu_time_start = cpu_timer.tv_nsec;
 
-        // perform a frame's worth of cpu operations...
-        cycles = 0;
-        while(cycles < cycles_per_frame) {
+        if(!paused) {
+            
+            // perform a frame's worth of cpu operations...
+            cycles = 0;
+            while(cycles < cycles_per_frame) {
 
-            // add opcode's cycle number to cycles accumulator
-            cycles += clock_cycles[machine.memory[machine.pc]];
+                // add opcode's cycle number to cycles accumulator
+                cycles += clock_cycles[machine.memory[machine.pc]];
 
-            // check if the next intruction should be handled by
-            // special machine hardware. if not (returns 0), pass it
-            // on to be processed by the cpu emulator
-            // disassemble_at_memory(machine.memory, machine.pc);
-            if(check_machine_instruction(&machine) == 0) {
-                done = !emulate_next_instruction(&machine);
-            }
+                // check if the next intruction should be handled by
+                // special machine hardware. if not (returns 0), pass it
+                // on to be processed by the cpu emulator
+                // disassemble_at_memory(machine.memory, machine.pc);
+                if(check_machine_instruction(&machine) == 0) {
+                    done = !emulate_next_instruction(&machine);
+                }
 
-            if(interrupt == 1 && cycles >= cycles_per_interrupt) {
-                // process first interrupt at around half way through
-                // the cycles per frame
-                if(machine.accept_interrupt == 1) {
-                    interrupt_cpu(&machine, interrupt);
-                    interrupt ^= 0x03; // toggle between interrupts 1 and 2
+                if(interrupt == 1 && cycles >= cycles_per_interrupt) {
+                    // process first interrupt at around half way through
+                    // the cycles per frame
+                    if(machine.accept_interrupt == 1) {
+                        interrupt_cpu(&machine, interrupt);
+                        interrupt ^= 0x03; // toggle between interrupts 1 and 2
+                    }
                 }
             }
-        }
-        // process second interrupt
-        if(machine.accept_interrupt == 1) {
-            interrupt_cpu(&machine, interrupt);
-            interrupt ^= 0x03; // toggle between interrupts 1 and 2
+            // process second interrupt
+            if(machine.accept_interrupt == 1) {
+                interrupt_cpu(&machine, interrupt);
+                interrupt ^= 0x03; // toggle between interrupts 1 and 2
+            }
         }
 
         // check for new key events...
@@ -173,6 +178,8 @@ int main(int argc, char * argv[]) {
                             volume = -1;
                         }
                     }
+                    if(key_result == SI_KEY_RESULT_PAUSE && evt.type == SDL_KEYUP)
+                        paused ^= 0x01;
                     break;
                 default: ;
             }
