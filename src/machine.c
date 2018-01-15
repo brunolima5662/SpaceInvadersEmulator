@@ -129,18 +129,16 @@ void interrupt_cpu(machine_t * state, uint8_t interrupt) {
 }
 
 void render_screen(machine_t * state, SDL_Surface * screen) {
-    uint32_t x, y, bit, inverse_y_start;
-    uint32_t white = SDL_MapRGB(screen->format, 0xff, 0xff, 0xff);
-    uint32_t black = SDL_MapRGB(screen->format, 0x00, 0x00, 0x00);
-    uint32_t size  = VIDEO_Y * VIDEO_X;
-    uint32_t * pixels = (uint32_t *)screen->pixels, * pixels_tmp;
+    uint32_t x, y, inverse_y_start;
+    uint8_t white = 0xff, black = 0x00, bit;
+    uint8_t * pixels = (uint8_t *)screen->pixels, * pixels_tmp;
 
     unsigned char * video_ram = &state->memory[VIDEO_RAM_START];
     unsigned char pixel;
 
     SDL_LockSurface(screen);
     for(y = 0; y < VIDEO_Y; y++) {
-        inverse_y_start = size + (y - VIDEO_Y);
+        inverse_y_start = VIDEO_SIZE + (y - VIDEO_Y);
         for(x = 0; x < VIDEO_X; x += 8) {
             pixel = (*video_ram);
             pixels_tmp = &pixels[inverse_y_start - (x * VIDEO_Y)];

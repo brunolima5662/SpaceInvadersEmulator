@@ -71,11 +71,14 @@ int main(int argc, char * argv[]) {
         SDL_WINDOW_SHOWN
     );
     renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
-    screen = SDL_CreateRGBSurface(0, VIDEO_Y, VIDEO_X, 32, 0x00FF0000, 0x0000FF00, 0x000000FF, 0xFF000000);
-    texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_STREAMING, VIDEO_Y, VIDEO_X);
+    screen = SDL_CreateRGBSurfaceWithFormat(0, VIDEO_Y, VIDEO_X, 8, SDL_PIXELFORMAT_RGB332);
+    texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGB332, SDL_TEXTUREACCESS_STREAMING, VIDEO_Y, VIDEO_X);
 
     if(!texture || !renderer) {
-        fprintf(stderr, "SDL Renderer/Texture Error: %s\n", Mix_GetError());
+        if(!texture)
+            fprintf(stderr, "Texture Error: %s\n", Mix_GetError());
+        if(!renderer)
+            fprintf(stderr, "Renderer Error: %s\n", Mix_GetError());
         SDL_DestroyWindow(window);
         Mix_Quit();
         SDL_Quit();
