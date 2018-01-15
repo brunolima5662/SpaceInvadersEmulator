@@ -137,7 +137,7 @@ void interrupt_cpu(machine_t * state, uint8_t interrupt) {
 
 void render_screen(machine_t * state, SDL_Surface * screen) {
     uint32_t x, y, inverse_y_start;
-    uint8_t white = 0xff, black = 0x00, bit;
+    uint8_t on = FOREGROUND_COLOR, off = BACKGROUND_COLOR, bit;
     uint8_t * pixels = (uint8_t *)screen->pixels, * pixels_tmp;
 
     unsigned char * video_ram = &state->memory[VIDEO_RAM_START];
@@ -150,7 +150,7 @@ void render_screen(machine_t * state, SDL_Surface * screen) {
             pixel = (*video_ram);
             pixels_tmp = &pixels[inverse_y_start - (x * VIDEO_Y)];
             for(bit = 0; bit < 8; bit++) {
-                (*pixels_tmp) = ((pixel >> bit) & 0x01) ? white : black;
+                (*pixels_tmp) = ((pixel >> bit) & 0x01) ? on : off;
                 pixels_tmp -= VIDEO_Y;
             }
             video_ram++;
