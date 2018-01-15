@@ -128,39 +128,30 @@ void interrupt_cpu(machine_t * state, uint8_t interrupt) {
     state->accept_interrupt = 0;
 }
 
-void render_frame(machine_t * state, SDL_Surface * frame) {
-    uint8_t  bit;
-    uint32_t color, scanline, offset, x_offset, x, y, _x, _y;
-    uint32_t white = SDL_MapRGB(frame->format, 0xff, 0xff, 0xff);
-    uint32_t black = SDL_MapRGB(frame->format, 0x00, 0x00, 0x00);
-    uint32_t scaled_w = VIDEO_Y * VIDEO_SCALE;
-    uint32_t scaled_h = VIDEO_X * VIDEO_SCALE;
-    uint32_t scaled_size = scaled_w * scaled_h;
-    uint32_t * pixels = (uint32_t *)frame->pixels;
-    uint32_t scaled_row_size  = (scaled_w * VIDEO_SCALE);
-    uint32_t scaled_row_bits  = scaled_row_size * 8;
+void render_screen(machine_t * state, SDL_Surface * screen) {
+    uint32_t x, y, bit, inverse_y_start;
+    uint32_t white = SDL_MapRGB(screen->format, 0xff, 0xff, 0xff);
+    uint32_t black = SDL_MapRGB(screen->format, 0x00, 0x00, 0x00);
+    uint32_t size  = VIDEO_Y * VIDEO_X;
+    uint32_t * pixels = (uint32_t *)screen->pixels, * pixels_tmp;
+
     unsigned char * video_ram = &state->memory[VIDEO_RAM_START];
     unsigned char pixel;
 
-    SDL_LockSurface(frame);
+    SDL_LockSurface(screen);
     for(y = 0; y < VIDEO_Y; y++) {
-        x_offset = (y * VIDEO_SCALE) - scaled_row_size;
-        scanline = (y * VIDEO_SCANLINE);
-        for(x = 0; x < VIDEO_SCANLINE; x++) {
-            pixel   = video_ram[scanline + x];
-            offset  = scaled_size - (scaled_row_bits * x) + x_offset;
+        inverse_y_start = size + (y - VIDEO_Y);
+        for(x = 0; x < VIDEO_X; x += 8) {
+            pixel = (*video_ram);
+            pixels_tmp = &pixels[inverse_y_start - (x * VIDEO_Y)];
             for(bit = 0; bit < 8; bit++) {
-                color = ((pixel >> bit) & 0x01) ? white : black;
-                for(_y = 0; _y < scaled_row_size; _y += scaled_w) {
-                    for(_x = 0; _x < VIDEO_SCALE; _x++) {
-                        pixels[offset + _x + _y] = color;
-                    }
-                }
-                offset -= scaled_row_size;
+                (*pixels_tmp) = ((pixel >> bit) & 0x01) ? white : black;
+                pixels_tmp -= VIDEO_Y;
             }
+            video_ram++;
         }
     }
-    SDL_UnlockSurface(frame);
+    SDL_UnlockSurface(screen);
 }
 
 void update_input_bit(machine_t * state, uint8_t port, uint8_t bit, uint32_t event) {

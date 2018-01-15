@@ -16,6 +16,7 @@
 #define VIDEO_SCALE 3
 #define VIDEO_X 256 // in pixels
 #define VIDEO_Y 224 // in pixels
+#define VIDEO_SIZE (VIDEO_X * VIDEO_Y) // in pixels
 #define VIDEO_SCANLINE 32 // in bytes
 #define VIDEO_HZ 60 // in hertz
 #define CPU_KHZ 4000 // in kilohertz
@@ -67,7 +68,7 @@ typedef struct machine {
 void initialize_machine(machine_t *);
 void shutdown_machine(machine_t *);
 int check_machine_instruction(machine_t *);
-void render_frame(machine_t *, SDL_Surface *);
+void render_screen(machine_t *, SDL_Surface *);
 void sleep_microseconds(uint64_t);
 void interrupt_cpu(machine_t *, uint8_t);
 SI_KEY_RESULT handle_input(machine_t *, uint32_t, uint32_t);

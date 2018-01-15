@@ -10,13 +10,12 @@
 int main(int argc, char * argv[]) {
     uint8_t done = 0;
     int volume = -1;
-    uint32_t width = (VIDEO_X * VIDEO_SCALE), height = (VIDEO_Y * VIDEO_SCALE);
     FILE * rom = NULL;
-    SDL_Window   * window   = NULL;
-    SDL_Renderer * renderer = NULL;
-    SDL_Surface  * screen   = NULL;
-    SDL_Texture  * texture  = NULL;
-    SDL_Event evt;
+    SDL_Event      evt;
+    SDL_Window   * window    = NULL;
+    SDL_Renderer * renderer  = NULL;
+    SDL_Surface  * screen    = NULL;
+    SDL_Texture  * texture   = NULL;
 
     // start SDL library and main window
     if(SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO) < 0) {
@@ -67,15 +66,13 @@ int main(int argc, char * argv[]) {
         "Space Invaders",
         SDL_WINDOWPOS_CENTERED,
         SDL_WINDOWPOS_CENTERED,
-        height, // flip width and height since the machine's screen
-        width, // is actually flipped on its side for it to be vertical
+        VIDEO_Y * VIDEO_SCALE, // flip width and height since the machine's screen
+        VIDEO_X * VIDEO_SCALE, // is actually flipped on its side for it to be vertical
         SDL_WINDOW_SHOWN
     );
     renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
-    screen = SDL_CreateRGBSurface(0, height, width, 32, 0x00FF0000, 0x0000FF00, 0x000000FF, 0xFF000000);
-    texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_STREAMING, height, width);
-    //SDL_FillRect(screen, NULL, SDL_MapRGB(screen->format, 0x00, 0x00, 0x00));
-    //SDL_UpdateWindowSurface(window);
+    screen = SDL_CreateRGBSurface(0, VIDEO_Y, VIDEO_X, 32, 0x00FF0000, 0x0000FF00, 0x000000FF, 0xFF000000);
+    texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_STREAMING, VIDEO_Y, VIDEO_X);
 
     if(!texture || !renderer) {
         fprintf(stderr, "SDL Renderer/Texture Error: %s\n", Mix_GetError());
@@ -84,7 +81,6 @@ int main(int argc, char * argv[]) {
         SDL_Quit();
         exit(EXIT_FAILURE);
     }
-    //SDL_SetRenderDrawColor(renderer, 0x00, 0x00, 0x00, 0xff);
 
     // start the emulation loop
     uint32_t cycles = 0;
@@ -103,7 +99,7 @@ int main(int argc, char * argv[]) {
     while(done == 0) {
 
         // render next frame
-        render_frame(&machine, screen);
+        render_screen(&machine, screen);
         SDL_UpdateTexture(texture, NULL, screen->pixels, screen->pitch);
         SDL_RenderClear(renderer);
         SDL_RenderCopy(renderer, texture, NULL, NULL);
