@@ -59,3 +59,6 @@ webapp/build/**/*
 
 # node-modules for webapp
 webapp/node_modules/**/*
+
+# assets symbolic link for webapp
+webapp/assets/**/*

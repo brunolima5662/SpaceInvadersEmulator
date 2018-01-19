@@ -9,18 +9,18 @@ const UglifyJSPlugin        = require('uglifyjs-webpack-plugin')
 
 module.exports = {
     entry: {
-        app: './main.js',
-        sw: './sw.js'
+        app: './src/main.js',
+        //sw: './src/sw.js'
     },
     output: {
         filename: '[name].js',
-        path: path.resolve(__dirname, 'app')
+        path: path.resolve(__dirname, 'build')
     },
     plugins: [
         new CleanWebpackPlugin(['build']),
         new UglifyJSPlugin({ sourceMap: true }),
         new FaviconsWebpackPlugin({
-            logo: path.resolve(__dirname, 'icons', 'icon.png'),
+            logo: path.resolve(__dirname, 'src', 'images', 'icon.png'),
             persistentCache: true,
             inject: true,
             background: '#FFF',
@@ -44,11 +44,11 @@ module.exports = {
     module: {
         rules: [
             {
-                test: /\(.css|.scss)$/,
+                test: /\.(.css|.scss)$/,
                 use: ExtractTextPlugin.extract({
                     fallback: 'style-loader',
                     use: ['css-loader', 'sass-loader']
-                }]
+                })
             },
             { test: /\.(png|svg|jpg)$/, use: [ 'file-loader' ] },
             {
@@ -58,13 +58,13 @@ module.exports = {
                     loader: 'babel-loader',
                     options: {
                         presets: [
-                            '@babel/preset-env',
-                            '@babel/preset-react',
-                            '@babel/preset-stage-0'
+                            'babel-preset-env',
+                            'babel-preset-react',
+                            'babel-preset-stage-0'
                         ]
                     }
                 }
-            }
+            },
             { test: /\.wasm$/, loaders: ['wasm-loader'] }
         ]
     }
