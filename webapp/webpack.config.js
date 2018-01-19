@@ -27,7 +27,7 @@ module.exports = {
             inject: true,
             background: '#FFF',
             title: 'Space Invaders',
-            icons: { android: true, appleIcon: true, coast: false, favicons: true, firefox: true, windows: true }
+            icons: { android: true, appleIcon: true, coast: false, favicons: true, firefox: false, windows: false }
         }),
         new HtmlWebpackPlugin({
             title: 'Space Invaders',
