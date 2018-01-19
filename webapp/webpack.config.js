@@ -17,8 +17,10 @@ module.exports = {
         path: path.resolve(__dirname, 'build')
     },
     plugins: [
-        new CleanWebpackPlugin(['build']),
         new UglifyJSPlugin({ sourceMap: true }),
+        new CleanWebpackPlugin(['build'], {
+            exclude: [ "bin.wasm", "bin.data", "bin.js" ]
+        }),
         new FaviconsWebpackPlugin({
             logo: path.resolve(__dirname, 'src', 'images', 'icon.png'),
             persistentCache: true,

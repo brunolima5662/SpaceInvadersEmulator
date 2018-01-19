@@ -9,4 +9,4 @@ space-invaders: src/main.c
 	$(CC) src/main.c -s WASM=1 $(FLAGS) -o $(OUTPUT)
 
 clean:
-	rm build/*.wasm $(OUTPUT)
+	rm build/bin.*
