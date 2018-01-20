@@ -3,11 +3,16 @@
 
 #include <stdint.h>
 #include <time.h>
-#include <SDL.h>
-#include <SDL_mixer.h>
+#include <stdio.h>
+#include <string.h>
 
 #ifndef __EMSCRIPTEN__
+#include <SDL.h>
+#include <SDL_mixer.h>
 #include "media.h"
+#else
+#include <SDL/SDL.h>
+#include <SDL/SDL_mixer.h>
 #endif
 
 #define MEMORY_SIZE 0x10000

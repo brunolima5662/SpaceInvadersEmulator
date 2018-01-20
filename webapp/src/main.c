@@ -1,5 +1,7 @@
 #include <stdint.h>
-#include <time.h>
+#include <stdlib.h>
+#include <SDL/SDL.h>
+#include <SDL/SDL_mixer.h>
 #include <emscripten.h>
 #include "native/machine.h"
 #include "native/emulator.h"
@@ -12,11 +14,7 @@ typedef struct cpu_context {
     SDL_Texture  *  texture;
     uint8_t         paused;
     uint8_t         interrupt;
-    struct timespec cpu_timer;
-    uint64_t        cpu_time_start;
-    uint64_t        cpu_time_delta;
     uint32_t        cycles;
-    uint16_t        ms_per_frame;
     uint32_t        cycles_per_frame;
     uint16_t        cycles_per_interrupt;
     uint8_t         done;
@@ -24,7 +22,7 @@ typedef struct cpu_context {
 
 void cpu_run(void *);
 
-int main(int argc, char * argv[]) {
+int mainf(int argc, char * argv[]) {
     uint8_t done = 0, paused = 0;
     int volume = -1;
     FILE * rom = NULL;
@@ -32,7 +30,7 @@ int main(int argc, char * argv[]) {
     SDL_DisplayMode displayMode;
     SDL_Window   * window    = NULL;
     SDL_Renderer * renderer  = NULL;
-    SDL_Surface  * screen    = NULL;
+    SDL_Surface  * screen    = NULL, * r_screen = NULL;
     SDL_Texture  * texture   = NULL;
     SDL_Rect     screen_rect = { 0, 0, VIDEO_Y * VIDEO_SCALE, VIDEO_X * VIDEO_SCALE };
 
@@ -86,7 +84,7 @@ int main(int argc, char * argv[]) {
     fclose(rom);
 
 
-    // initialize SDL window and screen
+    // initialize SDL window, renderer, and texture
     window = SDL_CreateWindow(
         "Space Invaders",
         SDL_WINDOWPOS_CENTERED,
@@ -96,8 +94,13 @@ int main(int argc, char * argv[]) {
         SDL_WINDOW_SHOWN
     );
     renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
-    screen   = SDL_CreateRGBSurfaceWithFormat(0, VIDEO_Y, VIDEO_X, 8, SDL_PIXELFORMAT_RGB332);
     texture  = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGB332, SDL_TEXTUREACCESS_STREAMING, VIDEO_Y, VIDEO_X);
+
+
+    // create SDL surface weith pixel format as RGB332
+    r_screen = SDL_CreateRGBSurface(0, VIDEO_Y, VIDEO_X, 8, 0, 0, 0, 0);
+    screen   = SDL_ConvertSurfaceFormat(r_screen, SDL_PIXELFORMAT_RGB332, 0);
+    SDL_FreeSurface(r_screen);
 
     if(!texture || !renderer) {
         if(!texture)
@@ -119,14 +122,10 @@ int main(int argc, char * argv[]) {
     context.texture = texture;
     context.paused = 0;
     context.interrupt = 1;
-    context.cpu_time_delta = 0;
     context.cycles = 0;
-    context.ms_per_frame = (uint32_t)((1.0f / VIDEO_HZ) * 1000);
-    context.cycles_per_frame = context.ms_per_frame * CPU_KHZ;
+    context.cycles_per_frame = (uint32_t)((1.0f / VIDEO_HZ) * 1000) * CPU_KHZ;
     context.cycles_per_interrupt = context.cycles_per_frame / 2;
     context.done = 0;
-    clock_gettime(CLOCK_REALTIME, &context.cpu_timer);
-    context.cpu_time_start = context.cpu_timer.tv_nsec;
 
     // start web-friendly infitite loop through emscripten's api
     emscripten_set_main_loop_arg(cpu_run, &context, -1, 1);
@@ -156,22 +155,6 @@ void cpu_run(void * arg) {
         SDL_RenderCopy(ctx->renderer, ctx->texture, NULL, NULL);
         SDL_RenderPresent(ctx->renderer);
     }
-
-    // if the last batch of cycles and rendering took less than the
-    // amount of time between frames (~16 ms), then sleep for the
-    // remainder of that time
-    clock_gettime(CLOCK_REALTIME, &ctx->cpu_timer);
-    if(ctx->cpu_timer.tv_nsec >= ctx->cpu_time_start)
-        ctx->cpu_time_delta = (ctx->cpu_timer.tv_nsec - ctx->cpu_time_start) / 1000;
-    else
-        ctx->cpu_time_delta = (1000000000UL - ctx->cpu_time_start + ctx->cpu_timer.tv_nsec) / 1000;
-    if(ctx->cpu_time_delta < 16000)
-        sleep_microseconds(16000 - ctx->cpu_time_delta);
-
-        // store current time to calculate the processing time delta
-        // during the next frame render
-        clock_gettime(CLOCK_REALTIME, &ctx->cpu_timer);
-        ctx->cpu_time_start = ctx->cpu_timer.tv_nsec;
 
     if(!ctx->paused) {
 
