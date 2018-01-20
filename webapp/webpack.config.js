@@ -37,11 +37,11 @@ module.exports = {
             mobile: true,
             meta: [
                 { "apple-mobile-web-app-capable": "yes" },
-                { "mobile-web-app-capable": "yes" },
                 { "apple-mobile-web-app-status-bar-style": "black" },
                 { "viewport": "user-scalable=no, width=device-width" }
             ]
-        })
+        }),
+        new ExtractTextPlugin("styles.css")
     ],
     module: {
         rules: [

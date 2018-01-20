@@ -198,6 +198,7 @@ SI_KEY_RESULT handle_input(machine_t * state, uint32_t event, uint32_t key) {
 
 void load_sound_samples(machine_t * state) {
     SDL_RWops * sample;
+    #ifndef __WEBAPP__
     uint8_t * adrs[] = { &_media_0,
         &_media_1, &_media_2, &_media_3, &_media_4,
         &_media_5, &_media_6, &_media_7, &_media_8
@@ -210,6 +211,8 @@ void load_sound_samples(machine_t * state) {
         }
         SDL_FreeRW(sample);
     }
+    #else
+    #endif
 }
 
 void sleep_microseconds(uint64_t microseconds) {

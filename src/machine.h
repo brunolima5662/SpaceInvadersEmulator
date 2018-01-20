@@ -5,7 +5,10 @@
 #include <time.h>
 #include <SDL.h>
 #include <SDL_mixer.h>
+
+#ifndef __WEBAPP__
 #include "media.h"
+#endif
 
 #define MEMORY_SIZE 0x10000
 #define ROM_START 0x0000
