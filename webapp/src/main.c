@@ -1,13 +1,9 @@
 #include <stdint.h>
 #include <time.h>
-#include <SDL.h>
-#include <SDL/SDL_mixer.h>
 #include <emscripten.h>
 #include "native/machine.h"
 #include "native/emulator.h"
 #include "native/disassembler.h"
-
-#define __WEBAPP__
 
 typedef struct cpu_context {
     machine_t    *  machine;
@@ -17,7 +13,7 @@ typedef struct cpu_context {
     uint8_t         paused;
     uint8_t         interrupt;
     struct timespec cpu_timer;
-    uint64_t        cpu_timer_start;
+    uint64_t        cpu_time_start;
     uint64_t        cpu_time_delta;
     uint32_t        cycles;
     uint16_t        ms_per_frame;
@@ -95,7 +91,7 @@ int main(int argc, char * argv[]) {
         "Space Invaders",
         SDL_WINDOWPOS_CENTERED,
         SDL_WINDOWPOS_CENTERED,
-        screen_rect.w
+        screen_rect.w,
         screen_rect.h,
         SDL_WINDOW_SHOWN
     );
@@ -117,20 +113,20 @@ int main(int argc, char * argv[]) {
     // create a context object with all resources that the
     // cpu emulator loop will need
     cpu_context_t context;
-    reference.machine = &machine;
-    reference.renderer = renderer;
-    reference.screen = screen;
-    reference.texture = texture;
-    reference.paused = 0;
-    reference.interrupt = 1;
-    reference.cpu_time_delta = 0;
-    reference.cycles = 0;
-    reference.ms_per_frame = (uint32_t)((1.0f / VIDEO_HZ) * 1000);
-    reference.cycles_per_frame = ms_per_frame * CPU_KHZ;
-    reference.cycles_per_interrupt = cycles_per_frame / 2;
-    reference.done = 0;
-    clock_gettime(CLOCK_REALTIME, &reference.cpu_timer);
-    reference.cpu_time_start = reference.cpu_timer.tv_nsec;
+    context.machine = &machine;
+    context.renderer = renderer;
+    context.screen = screen;
+    context.texture = texture;
+    context.paused = 0;
+    context.interrupt = 1;
+    context.cpu_time_delta = 0;
+    context.cycles = 0;
+    context.ms_per_frame = (uint32_t)((1.0f / VIDEO_HZ) * 1000);
+    context.cycles_per_frame = context.ms_per_frame * CPU_KHZ;
+    context.cycles_per_interrupt = context.cycles_per_frame / 2;
+    context.done = 0;
+    clock_gettime(CLOCK_REALTIME, &context.cpu_timer);
+    context.cpu_time_start = context.cpu_timer.tv_nsec;
 
     // start web-friendly infitite loop through emscripten's api
     emscripten_set_main_loop_arg(cpu_run, &context, -1, 1);
@@ -154,7 +150,7 @@ void cpu_run(void * arg) {
     cpu_context_t * ctx = (cpu_context_t *)arg;
     if(!ctx->paused) {
         // render next frame
-        render_screen(&ctx->machine, ctx->screen);
+        render_screen(ctx->machine, ctx->screen);
         SDL_UpdateTexture(ctx->texture, NULL, ctx->screen->pixels, ctx->screen->pitch);
         SDL_RenderClear(ctx->renderer);
         SDL_RenderCopy(ctx->renderer, ctx->texture, NULL, NULL);
@@ -184,21 +180,21 @@ void cpu_run(void * arg) {
         while(ctx->cycles < ctx->cycles_per_frame) {
 
             // add opcode's cycle number to cycles accumulator
-            ctx->cycles += clock_cycles[ctx->machine->memory[machinectx->pc]];
+            ctx->cycles += clock_cycles[ctx->machine->memory[ctx->machine->pc]];
 
             // check if the next intruction should be handled by
             // special machine hardware. if not (returns 0), pass it
             // on to be processed by the cpu emulator
             // disassemble_at_memory(machine.memory, machine.pc);
-            if(check_machine_instruction(&ctx->machine) == 0) {
-                ctx->done = !emulate_next_instruction(&ctx->machine);
+            if(check_machine_instruction(ctx->machine) == 0) {
+                ctx->done = !emulate_next_instruction(ctx->machine);
             }
 
             if(ctx->interrupt == 1 && ctx->cycles >= ctx->cycles_per_interrupt) {
                 // process first interrupt at around half way through
                 // the cycles per frame
                 if(ctx->machine->accept_interrupt == 1) {
-                    interrupt_cpu(&ctx->machine, ctx->interrupt);
+                    interrupt_cpu(ctx->machine, ctx->interrupt);
                     ctx->interrupt ^= 0x03; // toggle between interrupts 1 and 2
                 }
             }
@@ -208,7 +204,7 @@ void cpu_run(void * arg) {
         }
         // process second interrupt
         if(ctx->machine->accept_interrupt == 1) {
-            interrupt_cpu(&ctx->machine, ctx->interrupt);
+            interrupt_cpu(ctx->machine, ctx->interrupt);
             ctx->interrupt ^= 0x03; // toggle between interrupts 1 and 2
         }
     }

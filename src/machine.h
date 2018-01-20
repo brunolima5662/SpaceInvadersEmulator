@@ -6,7 +6,7 @@
 #include <SDL.h>
 #include <SDL_mixer.h>
 
-#ifndef __WEBAPP__
+#ifndef __EMSCRIPTEN__
 #include "media.h"
 #endif
 
