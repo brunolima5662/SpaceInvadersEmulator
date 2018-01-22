@@ -1,8 +1,8 @@
 #include <stdint.h>
 #include <stdlib.h>
-#include <SDL/SDL.h>
+#include <SDL2/SDL.h>
 #include <SDL/SDL_mixer.h>
-#include <emscripten.h>
+#include <emscripten/emscripten.h>
 #include "native/machine.h"
 #include "native/emulator.h"
 #include "native/disassembler.h"
@@ -12,7 +12,7 @@ typedef struct cpu_context {
     SDL_Renderer *  renderer;
     SDL_Surface  *  screen;
     SDL_Texture  *  texture;
-    SDL_Event    *  event;
+    SDL_Event       event;
     uint8_t         paused;
     uint8_t         volume;
     uint8_t         interrupt;
@@ -24,7 +24,11 @@ typedef struct cpu_context {
 
 void cpu_run(void *);
 
-int mainf(int argc, char * argv[]) {
+int main(int argc, char * argv[]) {
+    return 0;
+}
+
+int EMSCRIPTEN_KEEPALIVE mainf() {
     uint8_t done = 0, paused = 0;
     int volume = -1;
     FILE * rom = NULL;
@@ -58,18 +62,9 @@ int mainf(int argc, char * argv[]) {
     initialize_machine(&machine);
 
     // read rom file into memory
-    if(argc > 1) {
-        rom = fopen("assets/ROM", "rb");
-        if (rom == NULL) {
-            fprintf(stderr, "ROM file invalid, exiting...");
-            Mix_Quit();
-            SDL_Quit();
-            exit(EXIT_FAILURE);
-        }
-    }
-    else {
-        fprintf(stderr, "No rom file specified, exiting...\n");
-        fprintf(stderr, "Usage: %s <path to rom file...>\n", argv[0]);
+    rom = fopen("assets/ROM", "rb");
+    if (rom == NULL) {
+        fprintf(stderr, "ROM file invalid, exiting...\n");
         Mix_Quit();
         SDL_Quit();
         exit(EXIT_FAILURE);
@@ -96,13 +91,9 @@ int mainf(int argc, char * argv[]) {
         SDL_WINDOW_SHOWN | SDL_WINDOW_RESIZABLE
     );
     renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
+    screen   = SDL_CreateRGBSurfaceWithFormat(0, VIDEO_Y, VIDEO_X, 8, SDL_PIXELFORMAT_RGB332);
     texture  = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGB332, SDL_TEXTUREACCESS_STREAMING, VIDEO_Y, VIDEO_X);
 
-
-    // create SDL surface weith pixel format as RGB332
-    r_screen = SDL_CreateRGBSurface(0, VIDEO_Y, VIDEO_X, 8, 0, 0, 0, 0);
-    screen   = SDL_ConvertSurfaceFormat(r_screen, SDL_PIXELFORMAT_RGB332, 0);
-    SDL_FreeSurface(r_screen);
 
     if(!texture || !renderer) {
         if(!texture)
@@ -131,7 +122,7 @@ int mainf(int argc, char * argv[]) {
     context.done = 0;
 
     // start web-friendly infitite loop through emscripten's api
-    emscripten_set_main_loop_arg(cpu_run, &context, -1, 1);
+    emscripten_set_main_loop_arg(cpu_run, (void *)&context, -1, 1);
 
     // quit SDL
     SDL_FreeSurface(screen);
@@ -197,14 +188,15 @@ void cpu_run(void * arg) {
 
     // check for new key events...
     SI_KEY_RESULT key_result;
-    while(SDL_PollEvent(ctx->event)) {
-        switch(ctx->event->type) {
+    SDL_Event * ev = &(ctx->event);
+    while(SDL_PollEvent(ev)) {
+        switch(ev->type) {
             case SDL_QUIT: ctx->done = 1; break;
             case SDL_KEYUP:
             case SDL_KEYDOWN:
-                key_result = handle_input(ctx->machine, ctx->event->type, ctx->event->key.keysym.sym);
+                key_result = handle_input(ctx->machine, ev->type, ev->key.keysym.sym);
                 ctx->done |= (key_result == SI_KEY_RESULT_EXIT);
-                if(key_result == SI_KEY_RESULT_TOGGLE_MUTE && ctx->event->type == SDL_KEYUP) {
+                if(key_result == SI_KEY_RESULT_TOGGLE_MUTE && ev->type == SDL_KEYUP) {
                     if(ctx->volume < 0) {
                         ctx->volume = Mix_Volume(-1, -1);
                         Mix_Volume(-1, 0);
@@ -214,7 +206,7 @@ void cpu_run(void * arg) {
                         ctx->volume = -1;
                     }
                 }
-                if(key_result == SI_KEY_RESULT_PAUSE && ctx->event->type == SDL_KEYUP)
+                if(key_result == SI_KEY_RESULT_PAUSE && ev->type == SDL_KEYUP)
                     ctx->paused ^= 0x01;
                 break;
             default: ;

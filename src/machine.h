@@ -5,13 +5,13 @@
 #include <time.h>
 #include <stdio.h>
 #include <string.h>
+#include <SDL2/SDL.h>
 
 #ifndef __EMSCRIPTEN__
 #include <SDL.h>
 #include <SDL_mixer.h>
 #include "media.h"
 #else
-#include <SDL/SDL.h>
 #include <SDL/SDL_mixer.h>
 #endif
 

@@ -197,24 +197,24 @@ SI_KEY_RESULT handle_input(machine_t * state, uint32_t event, uint32_t key) {
 }
 
 void load_sound_samples(machine_t * state) {
+    SDL_RWops * sample;
     #ifndef __EMSCRIPTEN__
-        SDL_RWops * sample;
         uint8_t * adrs[] = { &_media_0,
             &_media_1, &_media_2, &_media_3, &_media_4,
             &_media_5, &_media_6, &_media_7, &_media_8
         };
         for(uint8_t i = 0; i < SOUND_SAMPLES; i++) {
             sample = SDL_RWFromMem((void *)adrs[i], (int)(adrs[i + 1] - adrs[i]));
-            state->samples[i] = Mix_LoadWAV_RW(sample, 0);
+            state->samples[i] = Mix_LoadWAV_RW(sample, 1);
             if(state->samples[i] == NULL)
                 fprintf(stderr, "SDL_mixer Error: %s\n", Mix_GetError());
-            SDL_FreeRW(sample);
         }
     #else
-        char filename[13];
+        char _filename[13];
         for(uint8_t i = 0; i < SOUND_SAMPLES; i++) {
-            sprintf(filename, "assets/%d.wav", i);
-            state->samples[i] = Mix_LoadWAV(filename);
+            sprintf(_filename, "assets/%d.wav", i);
+            sample = SDL_RWFromFile(_filename, "rb");
+            state->samples[i] = Mix_LoadWAV_RW(sample, 1);
             if(state->samples[i] == NULL)
                 fprintf(stderr, "SDL_mixer Error: %s\n", Mix_GetError());
         }

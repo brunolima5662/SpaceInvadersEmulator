@@ -14,14 +14,9 @@ const sass_prepend = [
 ].join('\n')
 
 module.exports = {
-    entry: {
-        app: './src/main.js',
-        //sw: './src/sw.js'
-    },
-    output: {
-        filename: '[name].js',
-        path: path.resolve(__dirname, 'build')
-    },
+    entry:  { app: './src/main.js', /*sw: './src/sw.js' */ },
+    output: { filename: '[name].js', path: path.resolve(__dirname, 'build') },
+    node:   { fs: "empty" },
     plugins: [
         new UglifyJSPlugin({ sourceMap: true }),
         new CleanWebpackPlugin(['build'], {
@@ -78,8 +73,7 @@ module.exports = {
                         ]
                     }
                 }
-            },
-            { test: /\.wasm$/, loaders: ['wasm-loader'] }
+            }
         ]
     }
 }

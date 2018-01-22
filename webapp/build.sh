@@ -5,9 +5,6 @@ if [[ ! ${1+x} ]]; then
     exit 0
 fi
 
-cp $1 assets/ROM
 source /usr/local/emsdk/emsdk_env.sh --build=RELEASE
-make clean
-make
+make ROM=$1
 npm run build
-rm assets/ROM
