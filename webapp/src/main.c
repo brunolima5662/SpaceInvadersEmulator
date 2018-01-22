@@ -12,7 +12,9 @@ typedef struct cpu_context {
     SDL_Renderer *  renderer;
     SDL_Surface  *  screen;
     SDL_Texture  *  texture;
+    SDL_Event    *  event;
     uint8_t         paused;
+    uint8_t         volume;
     uint8_t         interrupt;
     uint32_t        cycles;
     uint32_t        cycles_per_frame;
@@ -57,7 +59,7 @@ int mainf(int argc, char * argv[]) {
 
     // read rom file into memory
     if(argc > 1) {
-        rom = fopen("ROM", "rb");
+        rom = fopen("assets/ROM", "rb");
         if (rom == NULL) {
             fprintf(stderr, "ROM file invalid, exiting...");
             Mix_Quit();
@@ -91,9 +93,9 @@ int mainf(int argc, char * argv[]) {
         SDL_WINDOWPOS_CENTERED,
         screen_rect.w,
         screen_rect.h,
-        SDL_WINDOW_SHOWN
+        SDL_WINDOW_SHOWN | SDL_WINDOW_RESIZABLE
     );
-    renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
+    renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
     texture  = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGB332, SDL_TEXTUREACCESS_STREAMING, VIDEO_Y, VIDEO_X);
 
 
@@ -121,6 +123,7 @@ int mainf(int argc, char * argv[]) {
     context.screen = screen;
     context.texture = texture;
     context.paused = 0;
+    context.volume = 0;
     context.interrupt = 1;
     context.cycles = 0;
     context.cycles_per_frame = (uint32_t)((1.0f / VIDEO_HZ) * 1000) * CPU_KHZ;
@@ -183,12 +186,38 @@ void cpu_run(void * arg) {
             }
 
             if(ctx->done)
-                emscripten_cancel_main_loop();
+                break;
         }
         // process second interrupt
         if(ctx->machine->accept_interrupt == 1) {
             interrupt_cpu(ctx->machine, ctx->interrupt);
             ctx->interrupt ^= 0x03; // toggle between interrupts 1 and 2
+        }
+    }
+
+    // check for new key events...
+    SI_KEY_RESULT key_result;
+    while(SDL_PollEvent(ctx->event)) {
+        switch(ctx->event->type) {
+            case SDL_QUIT: ctx->done = 1; break;
+            case SDL_KEYUP:
+            case SDL_KEYDOWN:
+                key_result = handle_input(ctx->machine, ctx->event->type, ctx->event->key.keysym.sym);
+                ctx->done |= (key_result == SI_KEY_RESULT_EXIT);
+                if(key_result == SI_KEY_RESULT_TOGGLE_MUTE && ctx->event->type == SDL_KEYUP) {
+                    if(ctx->volume < 0) {
+                        ctx->volume = Mix_Volume(-1, -1);
+                        Mix_Volume(-1, 0);
+                    }
+                    else {
+                        Mix_Volume(-1, ctx->volume);
+                        ctx->volume = -1;
+                    }
+                }
+                if(key_result == SI_KEY_RESULT_PAUSE && ctx->event->type == SDL_KEYUP)
+                    ctx->paused ^= 0x01;
+                break;
+            default: ;
         }
     }
 

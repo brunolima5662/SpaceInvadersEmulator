@@ -1,0 +1,25 @@
+@import 'bourbon/bourbon';
+@import 'theme';
+
+canvas {
+    &::before, &::after {
+        content: '';
+        display: table;
+        clear: both;
+        width: 1px;
+        margin-left: -1px;
+    }
+    &::before { float: left; padding-bottom: $render-aspect-ratio; }
+    @include position(absolute, 0 0 0 0);
+    margin: auto;
+    background-color: #000;
+    max-width: $render-width * $render-max-scale;
+    max-height: $render-height * $render-max-scale;
+    @media screen and (orientation: landscape) {
+        height: 100%;
+    }
+    @media screen and (orientation: portrait) {
+        width: 100%;
+    }
+
+}

@@ -6,6 +6,12 @@ const HtmlWebpackTemplate   = require('html-webpack-template')
 const FaviconsWebpackPlugin = require('favicons-webpack-plugin')
 const ExtractTextPlugin     = require('extract-text-webpack-plugin')
 const UglifyJSPlugin        = require('uglifyjs-webpack-plugin')
+const theme                 = require('./theme.json')
+
+const sass_prepend = [
+    `$render-width:  ${theme["render-width"]}px;`,
+    `$render-height: ${theme["render-height"]}px;`,
+].join('\n')
 
 module.exports = {
     entry: {
@@ -49,7 +55,13 @@ module.exports = {
                 test: /\.(.css|.scss)$/,
                 use: ExtractTextPlugin.extract({
                     fallback: 'style-loader',
-                    use: ['css-loader', 'sass-loader']
+                    use: ['css-loader', {
+                        loader: 'sass-loader',
+                        options: {
+                            data: sass_prepend,
+                            includePaths: ["src/sass-helpers"]
+                        }
+                    }]
                 })
             },
             { test: /\.(png|svg|jpg)$/, use: [ 'file-loader' ] },

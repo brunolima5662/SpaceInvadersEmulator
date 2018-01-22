@@ -211,9 +211,9 @@ void load_sound_samples(machine_t * state) {
             SDL_FreeRW(sample);
         }
     #else
-        char filename[6];
+        char filename[13];
         for(uint8_t i = 0; i < SOUND_SAMPLES; i++) {
-            sprintf(filename, "%d.wav", i);
+            sprintf(filename, "assets/%d.wav", i);
             state->samples[i] = Mix_LoadWAV(filename);
             if(state->samples[i] == NULL)
                 fprintf(stderr, "SDL_mixer Error: %s\n", Mix_GetError());
