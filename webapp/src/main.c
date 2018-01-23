@@ -9,10 +9,12 @@
 
 typedef struct cpu_context {
     machine_t    *  machine;
+    SDL_Window   *  window;
     SDL_Renderer *  renderer;
     SDL_Surface  *  screen;
     SDL_Texture  *  texture;
     SDL_Event       event;
+    uint8_t         running;
     uint8_t         paused;
     uint8_t         volume;
     uint8_t         interrupt;
@@ -23,6 +25,11 @@ typedef struct cpu_context {
 } cpu_context_t;
 
 void cpu_run(void *);
+void quit_sdl();
+
+// the struct will hold and references and flags
+// that the emulator loop will need
+cpu_context_t context;
 
 int main(int argc, char * argv[]) {
     return 0;
@@ -39,6 +46,14 @@ int EMSCRIPTEN_KEEPALIVE mainf() {
     SDL_Surface  * screen    = NULL, * r_screen = NULL;
     SDL_Texture  * texture   = NULL;
     SDL_Rect     screen_rect = { 0, 0, VIDEO_Y * VIDEO_SCALE, VIDEO_X * VIDEO_SCALE };
+
+    // first, check that there are no emulation loop running.
+    // if there are, cancel and close them first
+    if(context.running) {
+        emscripten_cancel_main_loop();
+        quit_sdl();
+        context.running = 0;
+    }
 
     // get device's screen resolution
     if(SDL_GetCurrentDisplayMode(0, &displayMode) == 0) {
@@ -106,10 +121,9 @@ int EMSCRIPTEN_KEEPALIVE mainf() {
         exit(EXIT_FAILURE);
     }
 
-    // create a context object with all resources that the
-    // cpu emulator loop will need
-    cpu_context_t context;
+    // setup initial state for the cpu context
     context.machine = &machine;
+    context.window  = window;
     context.renderer = renderer;
     context.screen = screen;
     context.texture = texture;
@@ -119,23 +133,30 @@ int EMSCRIPTEN_KEEPALIVE mainf() {
     context.cycles = 0;
     context.cycles_per_frame = (uint32_t)((1.0f / VIDEO_HZ) * 1000) * CPU_KHZ;
     context.cycles_per_interrupt = context.cycles_per_frame / 2;
+    context.running = 1;
     context.done = 0;
 
     // start web-friendly infitite loop through emscripten's api
     emscripten_set_main_loop_arg(cpu_run, (void *)&context, -1, 1);
 
-    // quit SDL
-    SDL_FreeSurface(screen);
-    SDL_DestroyTexture(texture);
-    SDL_DestroyRenderer(renderer);
-    SDL_DestroyWindow(window);
+    return 1;
+}
+
+// command from JS to stop emulation
+void EMSCRIPTEN_KEEPALIVE halt() {
+    emscripten_cancel_main_loop();
+    quit_sdl();
+    context.running = 0;
+}
+
+// cleanup after main loop finishes
+void quit_sdl() {
+    SDL_FreeSurface(context.screen);
+    SDL_DestroyTexture(context.texture);
+    SDL_DestroyRenderer(context.renderer);
+    SDL_DestroyWindow(context.window);
     Mix_Quit();
     SDL_Quit();
-
-
-    printf("Finished\n");
-
-    return 1;
 }
 
 // run a single cpu instruction
@@ -213,6 +234,9 @@ void cpu_run(void * arg) {
         }
     }
 
-    if(ctx->done)
+    if(ctx->done) {
         emscripten_cancel_main_loop();
+        quit_sdl();
+        context.running = 0;
+    }
 }

@@ -3,7 +3,7 @@ EXEC = bin
 ROM_PATH = assets/ROM
 BUILD_DIR = build
 OUTPUT = $(BUILD_DIR)/$(EXEC).js
-FUNCTIONS = -s EXPORTED_FUNCTIONS='["_main", "_mainf"]' -s EXTRA_EXPORTED_RUNTIME_METHODS='["ccall"]'
+FUNCTIONS = -s EXPORTED_FUNCTIONS='["_mainf", "_halt"]' -s EXTRA_EXPORTED_RUNTIME_METHODS='["ccall"]'
 ARGS = -s WASM=1  -s USE_SDL=2 -s NO_EXIT_RUNTIME=1 -s "BINARYEN_TRAP_MODE='clamp'"
 FLAGS = -O2 --use-preload-plugins --preload-file assets
 HEADERS = src/native/disassembler.h src/native/emulator.h src/native/machine.h

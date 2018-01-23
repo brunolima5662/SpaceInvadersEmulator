@@ -21,8 +21,8 @@
 #define VIDEO_RAM_START 0x2400
 #define RAM_MIRROR_START 0x4000
 
-#define BACKGROUND_COLOR 0x1f // in RGB332 format
-#define FOREGROUND_COLOR 0xc1 // in RGB332 format
+#define BACKGROUND_COLOR 0x00 // 0x1f // in RGB332 format
+#define FOREGROUND_COLOR 0xff // 0xc1 // in RGB332 format
 #define VIDEO_SCALE 3
 #define VIDEO_X 256 // in pixels
 #define VIDEO_Y 224 // in pixels
