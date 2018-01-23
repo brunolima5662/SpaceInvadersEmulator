@@ -151,12 +151,14 @@ void EMSCRIPTEN_KEEPALIVE halt() {
 
 // cleanup after main loop finishes
 void quit_sdl() {
-    SDL_FreeSurface(context.screen);
-    SDL_DestroyTexture(context.texture);
-    SDL_DestroyRenderer(context.renderer);
-    SDL_DestroyWindow(context.window);
-    Mix_Quit();
-    SDL_Quit();
+    if(context.running) {
+        SDL_FreeSurface(context.screen);
+        SDL_DestroyTexture(context.texture);
+        SDL_DestroyRenderer(context.renderer);
+        SDL_DestroyWindow(context.window);
+        Mix_Quit();
+        SDL_Quit();
+    }
 }
 
 // run a single cpu instruction

@@ -1,4 +1,8 @@
 {
     "render-width":  224,
-    "render-height": 256
+    "render-height": 256,
+    "primaryFontFamily": "Roboto, sans-serif",
+    "thirdPartyFonts": {
+        "google": [ "Roboto" ]
+    }
 }
