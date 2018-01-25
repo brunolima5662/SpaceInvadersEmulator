@@ -1,0 +1,4 @@
+{
+    "emulator_arg_types": [ "number", "number", "number", "array" ],
+    "emulator_args": { "foreground": 0, "background": 1, "lives": 2, "state": 3 }
+}

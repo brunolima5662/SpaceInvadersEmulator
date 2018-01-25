@@ -77,10 +77,10 @@ typedef struct machine {
     int32_t     channels[SOUND_SAMPLES];
 } machine_t;
 
-void initialize_machine(machine_t *);
+void initialize_machine(machine_t *, uint8_t);
 void shutdown_machine(machine_t *);
 int check_machine_instruction(machine_t *);
-void render_screen(machine_t *, SDL_Surface *);
+void render_screen(machine_t *, SDL_Surface *, uint8_t, uint8_t);
 void sleep_microseconds(uint64_t);
 void interrupt_cpu(machine_t *, uint8_t);
 SI_KEY_RESULT handle_input(machine_t *, uint32_t, uint32_t);

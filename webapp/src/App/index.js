@@ -2,6 +2,7 @@ import React from 'react'
 import ScriptJS from 'scriptjs'
 import EmulatorScreen from './EmulatorScreen'
 import DefaultState from './default_state.json'
+import { malloc } from '../Modules/helpers'
 import './app.scss'
 
 class App extends React.Component {
@@ -25,6 +26,19 @@ class App extends React.Component {
         })
         .catch(console.error)
 
+        // the emulator will dispatch an event that the following
+        // method will handle when it finishes on its own...
+        this.onEmulatorStopped = ev => {
+            this.setState({ emulatorRunning: false })
+        }
+
+    }
+    componentDidMount() {
+        document.addEventListener("emulator_stop", this.onEmulatorStopped)
+    }
+
+    componentWillUnmount() {
+        document.removeEventListener("emulator_stop", this.onEmulatorStopped)
     }
     startEmulation() {
         this.setState({ emulatorRunning: true })

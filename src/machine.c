@@ -4,14 +4,14 @@ void interrupt_cpu(machine_t *, uint8_t);
 void reset_program(machine_t *);
 void load_sound_samples(machine_t *);
 
-void initialize_machine(machine_t * state) {
+void initialize_machine(machine_t * state, uint8_t lives) {
     memset(state->memory, 0, MEMORY_SIZE);
     memset(state->channels, 0, SOUND_SAMPLES * 4);
     load_sound_samples(state);
-    reset_program(state);
+    reset_program(state, lives);
 }
 
-void reset_program(machine_t * state) {
+void reset_program(machine_t * state, uint8_t lives) {
     memset(state->ports_in, 0, IO_PORTS);
     memset(state->ports_out, 0, IO_PORTS);
     state->a = 0;
@@ -33,7 +33,7 @@ void reset_program(machine_t * state) {
     state->accept_interrupt = 0;
     state->ports_in[0] = 0x0e; // bits 1, 2, and 3 are always set
     state->ports_in[1] = 0x08; // bit 3 is always set
-    state->ports_in[2] = 0x08 | (GAME_NUMBER_OF_LIVES - 3); // bit 3 is always set
+    state->ports_in[2] = 0x08 | (lives - 3); // bit 3 is always set
 
 }
 
@@ -135,9 +135,9 @@ void interrupt_cpu(machine_t * state, uint8_t interrupt) {
     state->accept_interrupt = 0;
 }
 
-void render_screen(machine_t * state, SDL_Surface * screen) {
+void render_screen(machine_t * state, SDL_Surface * screen, uint8_t fcolor, uint8_t bcolor) {
     uint32_t x, y, inverse_y_start;
-    uint8_t on = FOREGROUND_COLOR, off = BACKGROUND_COLOR, bit;
+    uint8_t on = fcolor, off = bcolor, bit;
     uint8_t * pixels = (uint8_t *)screen->pixels, * pixels_tmp;
 
     unsigned char * video_ram = &state->memory[VIDEO_RAM_START];
@@ -187,7 +187,9 @@ SI_KEY_RESULT handle_input(machine_t * state, uint32_t event, uint32_t key) {
             update_input_bit(state, 2, 5, event); break;
         case SDLK_RIGHT: // Player 2 Right Button
             update_input_bit(state, 2, 6, event); break;
-        case SDLK_r: reset_program(state); break; // Reset
+        case SDLK_r:  // Reset, keep number of lives the same
+            reset_program(state, ((state->ports_in[2] & 0x03) + 3));
+            break;
         case SDLK_p: result = SI_KEY_RESULT_PAUSE; break; // Pause / Unpause
         case SDLK_m: result = SI_KEY_RESULT_TOGGLE_MUTE; break; // Mute Sound
         case SDLK_ESCAPE: result = SI_KEY_RESULT_EXIT; break; // Quit Emulation

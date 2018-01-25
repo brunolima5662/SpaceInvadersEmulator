@@ -21,6 +21,8 @@ typedef struct cpu_context {
     uint32_t        cycles;
     uint32_t        cycles_per_frame;
     uint16_t        cycles_per_interrupt;
+    uint8_t         foreground;
+    uint8_t         background;
     uint8_t         done;
 } cpu_context_t;
 
@@ -35,8 +37,15 @@ int main(int argc, char * argv[]) {
     return 0;
 }
 
-int EMSCRIPTEN_KEEPALIVE mainf() {
+int EMSCRIPTEN_KEEPALIVE mainf(
+    uint8_t set_colors_mask, // 0x1 = bcolor, 0x2 = fcolor, 0x3 = both
+    uint8_t fcolor,
+    uint8_t bcolor,
+    uint8_t lives,
+    uint8_t * state
+) {
     uint8_t done = 0, paused = 0;
+    uint8_t corrected_lives  = (lives >= 3 && lives <= 6) ? lives : 3;
     int volume = -1;
     FILE * rom = NULL;
     SDL_Event       evt;
@@ -74,7 +83,7 @@ int EMSCRIPTEN_KEEPALIVE mainf() {
 
     // declare and initialize machine
     machine_t machine;
-    initialize_machine(&machine);
+    initialize_machine(&machine, corrected_lives);
 
     // read rom file into memory
     rom = fopen("assets/ROM", "rb");
@@ -134,6 +143,8 @@ int EMSCRIPTEN_KEEPALIVE mainf() {
     context.cycles_per_frame = (uint32_t)((1.0f / VIDEO_HZ) * 1000) * CPU_KHZ;
     context.cycles_per_interrupt = context.cycles_per_frame / 2;
     context.running = 1;
+    context.foreground = (set_colors_mask & 0x2) ? fcolor : FOREGROUND_COLOR;
+    context.background = (set_colors_mask & 0x1) ? bcolor : BACKGROUND_COLOR;
     context.done = 0;
 
     // start web-friendly infitite loop through emscripten's api
@@ -166,7 +177,7 @@ void cpu_run(void * arg) {
     cpu_context_t * ctx = (cpu_context_t *)arg;
     if(!ctx->paused) {
         // render next frame
-        render_screen(ctx->machine, ctx->screen);
+        render_screen(ctx->machine, ctx->screen, ctx->foreground, ctx->background);
         SDL_UpdateTexture(ctx->texture, NULL, ctx->screen->pixels, ctx->screen->pitch);
         SDL_RenderClear(ctx->renderer);
         SDL_RenderCopy(ctx->renderer, ctx->texture, NULL, NULL);
@@ -235,10 +246,13 @@ void cpu_run(void * arg) {
             default: ;
         }
     }
-
     if(ctx->done) {
         emscripten_cancel_main_loop();
         quit_sdl();
+        EM_ASM(
+            var stop = new Event("emulator_stop");
+            document.dispatchEvent(stop);
+        );
         context.running = 0;
     }
 }

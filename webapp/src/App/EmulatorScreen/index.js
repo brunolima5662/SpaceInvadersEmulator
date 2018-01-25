@@ -1,15 +1,23 @@
 import React from 'react'
-
+import PropTypes from 'prop-types'
+import _ from 'lodash'
 import './emulator_screen.scss'
-const theme = require('../../../theme.json')
+const theme  = require('../../../theme.json')
+const config = require('../../../config.json')
 
 class EmulatorScreen extends React.Component {
     onCanvasLoaded(canvas) {
+        const self = this
         if(!this.loaded) {
             this.loaded = true
             try {
+                const types = config["emulator_arg_types"]
+                const args  = _.reduce(config["emulator_args"], (a, k, v) => {
+                    a[v] = self.props.settings[k]
+                    return a
+                }, new Array(types.length))
                 Module['canvas'] = canvas
-                Module.ccall('mainf', 'number', null, null)
+                Module.ccall('mainf', 'number', types, args)
             }
             catch(error) {
                 // suppress the 'SimulateInfiniteLoop' error since it's
@@ -31,6 +39,10 @@ class EmulatorScreen extends React.Component {
             </canvas>
         )
     }
+}
+
+EmulatorScreen.propTypes = {
+    settings: PropTypes.object.isRequired
 }
 
 module.exports = EmulatorScreen
