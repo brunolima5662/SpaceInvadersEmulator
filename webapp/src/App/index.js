@@ -1,8 +1,10 @@
 import React from 'react'
 import ScriptJS from 'scriptjs'
+import localForage from 'localforage'
+import HomeScreen from './HomeScreen'
 import EmulatorScreen from './EmulatorScreen'
 import DefaultState from './default_state.json'
-import { malloc } from '../Modules/helpers'
+import { malloc } from './Modules/helpers'
 import './app.scss'
 
 class App extends React.Component {
@@ -20,9 +22,10 @@ class App extends React.Component {
                 Module['onRuntimeInitialized'] = resolve
             })
         })
-        .then(() => {
+        .then( () => localForage.getItem("settings") ) // load settings from local storage
+        .then(settings => {
             // finally, render emulator screen
-            self.setState({ runtimeInitialized: true })
+            self.setState({ runtimeInitialized: true, settings })
         })
         .catch(console.error)
 
@@ -48,24 +51,19 @@ class App extends React.Component {
         this.setState({ emulatorRunning: false })
     }
     render () {
-        if(this.state.runtimeInitialized) {
-            if(this.state.emulatorRunning) {
-                var page = <EmulatorScreen />
-            }
-            else {
-                var page = (
-                    <button onClick={this.startEmulation.bind(this)}>
-                        {"Start!"}
-                    </button>
-                )
-            }
-        }
-        else {
-            var page = <div>loading...</div>
-        }
         return (
             <div id={"ui_container"}>
-                {page}
+                {(this.state.runtimeInitialized && this.state.emulatorRunning) &&
+                    <EmulatorScreen settings={this.state.settings} />
+                }
+                {(this.state.runtimeInitialized && !this.state.emulatorRunning) &&
+                    <HomeScreen
+                        onStart={this.startEmulation.bind(this)}
+                    />
+                }
+                {!this.state.runtimeInitialized &&
+                    <div>loading...</div>
+                }
             </div>
         )
     }

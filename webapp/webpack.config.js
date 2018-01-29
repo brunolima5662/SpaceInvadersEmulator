@@ -10,8 +10,10 @@ const UglifyJSPlugin        = require('uglifyjs-webpack-plugin')
 const theme                 = require('./theme.json')
 
 const sass_prepend = [
+    '@import "bourbon/bourbon";',
     `$render-width:  ${theme["render-width"]}px;`,
     `$render-height: ${theme["render-height"]}px;`,
+    '@import "theme";',
 ].join('\n')
 
 module.exports = {
@@ -22,7 +24,7 @@ module.exports = {
     output: { filename: '[name].js', path: path.resolve(__dirname, 'build') },
     node:   { fs: "empty" },
     plugins: [
-        new UglifyJSPlugin({ sourceMap: true }),
+        //new UglifyJSPlugin({ sourceMap: true }),
         new CleanWebpackPlugin(['build'], {
             exclude: [ "bin.wasm", "bin.data", "bin.js" ]
         }),
@@ -77,6 +79,7 @@ module.exports = {
                 use: {
                     loader: 'babel-loader',
                     options: {
+                        sourceMap: true,
                         presets: [
                             'babel-preset-env',
                             'babel-preset-react',

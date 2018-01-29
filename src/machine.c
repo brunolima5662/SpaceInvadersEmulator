@@ -1,7 +1,7 @@
 #include "machine.h"
 
 void interrupt_cpu(machine_t *, uint8_t);
-void reset_program(machine_t *);
+void reset_program(machine_t *, uint8_t);
 void load_sound_samples(machine_t *);
 
 void initialize_machine(machine_t * state, uint8_t lives) {

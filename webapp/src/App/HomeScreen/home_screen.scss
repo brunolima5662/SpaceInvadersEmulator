@@ -1,0 +1,48 @@
+@mixin phones {
+    @media only screen
+        and (max-device-width : 480px)
+        and (orientation: portrait) { @content; }
+}
+@mixin nonPhones {
+    @media only screen
+        and (min-device-width : 481px)
+        { @content; }
+}
+@mixin gridAlign($horizontal, $vertical: false) {
+    justify-self: $horizontal;
+    align-self: if($vertical == false, $horizontal, $vertical);
+}
+
+
+.homescreen {
+    @include position(absolute, 0 0 0 0);
+    @include size(100%, 100%);
+    display: grid;
+    @include phones {
+        grid-template-columns: 30px auto 30px;
+        grid-template-rows: auto 80px 20px 340px auto;
+    }
+    @include nonPhones {
+        grid-template-columns: auto 650px auto;
+        grid-template-rows: auto 200px 40px 540px auto;
+    }
+
+
+    .title {
+        font-family: $font-family;
+        grid-column: 2 / 3;
+        grid-row: 2 / 3;
+        @include gridAlign(center);
+        @include phones { font-size: 21px; }
+        @include nonPhones { font-size: 46px; }
+        color: black;
+    }
+
+    .content {
+        grid-column: 2 / 3;
+        grid-row: 4 / 5;
+        @include phones { font-size: 16px; }
+        @include nonPhones { font-size: 32px; }
+        background-color: black;
+    }
+}

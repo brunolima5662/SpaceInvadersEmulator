@@ -3,17 +3,22 @@ import PropTypes from 'prop-types'
 import _ from 'lodash'
 import './emulator_screen.scss'
 const theme  = require('../../../theme.json')
-const config = require('../../../config.json')
+const config = require('../config.json')
 
 class EmulatorScreen extends React.Component {
     onCanvasLoaded(canvas) {
         const self = this
+
         if(!this.loaded) {
             this.loaded = true
             try {
                 const types = config["emulator_arg_types"]
-                const args  = _.reduce(config["emulator_args"], (a, k, v) => {
-                    a[v] = self.props.settings[k]
+                const args  = _.reduce(config["emulator_args"], (a, v, k) => {
+                    const setting = self.props.settings[k]
+                    if(setting)
+                        a[v] = setting
+                    else
+                        a[v] = 0
                     return a
                 }, new Array(types.length))
                 Module['canvas'] = canvas
@@ -25,6 +30,7 @@ class EmulatorScreen extends React.Component {
                 // uses to be able to simulate an infinite loop in a JS
                 // environment. If it's not caught, it will break the
                 // React component.
+                console.log("YO")
                 if(error !== "SimulateInfiniteLoop")
                     console.error(error.message)
             }

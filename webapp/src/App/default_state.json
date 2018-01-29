@@ -1,4 +1,10 @@
 {
     "runtimeInitialized": false,
-    "emulatorRunning": false
+    "emulatorRunning": false,
+    "settings": {
+	    "set_colors_mask": 0,
+        "foreground": 255,
+        "background": 0,
+        "lives": 3
+    }
 }
