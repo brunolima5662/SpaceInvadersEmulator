@@ -34,7 +34,16 @@ module.exports = {
             inject: true,
             background: '#FFF',
             title: 'Space Invaders',
-            icons: { android: true, appleIcon: true, coast: false, favicons: true, firefox: false, windows: false }
+            icons: {
+                android: true,
+                appleIcon: true,
+                appleStartup: false,
+                coast: false,
+                favicons: true,
+                firefox: false,
+                windows: false,
+                yandex: false
+            }
         }),
         new HtmlWebpackPlugin({
             title: 'Space Invaders',
@@ -71,7 +80,10 @@ module.exports = {
             },
             {
                 test: /\.(jpe?g|png|gif|svg|eot|woff|ttf|svg|woff2)$/,
-                use: [ 'file-loader' ]
+                use: {
+                    loader: 'url-loader',
+                    options: { name: '[name].[ext]' }
+                }
             },
             {
                 test: /\.(js|jsx)$/,

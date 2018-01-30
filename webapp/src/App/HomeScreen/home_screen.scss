@@ -1,48 +1,107 @@
 @mixin phones {
     @media only screen
-        and (max-device-width : 480px)
+        and (max-device-width: 480px)
         and (orientation: portrait) { @content; }
 }
-@mixin nonPhones {
+@mixin tablets {
     @media only screen
-        and (min-device-width : 481px)
+        and (min-device-width:  481px)
+        and (max-device-width: 1024px)
+        { @content; }
+}
+@mixin desktops {
+    @media only screen
+        and (min-device-width: 1025px)
         { @content; }
 }
 @mixin gridAlign($horizontal, $vertical: false) {
     justify-self: $horizontal;
     align-self: if($vertical == false, $horizontal, $vertical);
 }
+// $type: flat, box, or round
+@mixin button($type: "flat", $color: black, $textcolor: white) {
+    @if $type == "box" or $type == "round" {
+        background-color: $color;
+        color: $textcolor;
+        @if $type == "round" { border-radius: 4px; }
+        &:hover  { background-color: darken($color, 5%); }
+        &:active { background-color: darken($color, 15%); }
+    } @else {
+        background-color: transparent;
+        color: $color;
+        &:hover  { color: darken($color, 5%); }
+        &:active { color: darken($color, 15%); }
+    }
+    @include padding(0.5ex 1ex);
+    border-width: 0px;
+    outline: none;
+    font-size: 16px;
+    font-family: $font-family;
+    cursor: pointer;
+}
 
 
 .homescreen {
     @include position(absolute, 0 0 0 0);
     @include size(100%, 100%);
+    margin: auto;
     display: grid;
     @include phones {
-        grid-template-columns: 30px auto 30px;
-        grid-template-rows: auto 80px 20px 340px auto;
+        grid-template-columns: 5% auto 5%;
+        grid-template-rows: 15px 26% auto 64% 30px;
     }
-    @include nonPhones {
-        grid-template-columns: auto 650px auto;
-        grid-template-rows: auto 200px 40px 540px auto;
+    @include tablets {
+        grid-template-columns: 7% auto 7%;
+        grid-template-rows: 3% 27% auto 59% 5%;
+    }
+    @include desktops {
+        grid-template-columns: 7% auto 7%;
+        grid-template-rows: 3% 27% auto 59% 5%;
+        max-width: 660px;
     }
 
 
-    .title {
-        font-family: $font-family;
+    .header {
+        display: flex;
+        justify-content: space-around;
+        justify-self: center;
+        flex-direction: column;
         grid-column: 2 / 3;
         grid-row: 2 / 3;
-        @include gridAlign(center);
-        @include phones { font-size: 21px; }
-        @include nonPhones { font-size: 46px; }
-        color: black;
+
+        .title {
+            font-family: $font-family;
+            text-align: center;
+            @include phones { font-size: 40px; }
+            @include tablets { font-size: 64px; }
+            @include desktops { font-size: 64px; }
+            color: black;
+        }
+
+        .logo {
+            @include phones { @include size(100px, 100px); }
+            @include tablets { @include size(150px, 150px); }
+            @include desktops { @include size(150px, 150px); }
+            margin: auto;
+        }
+
     }
 
     .content {
         grid-column: 2 / 3;
         grid-row: 4 / 5;
         @include phones { font-size: 16px; }
-        @include nonPhones { font-size: 32px; }
-        background-color: black;
+        @include tablets { font-size: 32px; }
+        @include desktops { font-size: 32px; }
+        display: grid;
+        grid-template-columns: 10% auto 10%;
+        grid-template-rows: 10% 100px auto;
+
+        .start {
+            grid-column: 2 / 3;
+            grid-row: 2 / 3;
+            @include button($type: "box", $color: $color-primary-0);
+            @include size(100%, 100%);
+        }
     }
 }
