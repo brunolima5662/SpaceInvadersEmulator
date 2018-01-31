@@ -160,6 +160,11 @@ void EMSCRIPTEN_KEEPALIVE halt() {
     context.running = 0;
 }
 
+// command from pause / resume emulation
+void EMSCRIPTEN_KEEPALIVE toggle_pause() {
+    context.paused ^= 0x01;
+}
+
 // cleanup after main loop finishes
 void quit_sdl() {
     if(context.running) {

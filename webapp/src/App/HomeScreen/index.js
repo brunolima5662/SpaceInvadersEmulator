@@ -1,12 +1,27 @@
 import React from 'react'
+import localForage from 'localforage'
 import './home_screen.scss'
 import logo from './logo.png'
 import heart from './heart.png'
 
 class HomeScreen extends React.Component {
-
+    constructor(props) {
+        super(props)
+        Promise.all([
+            localForage.getItem("settings"),
+            localForage.getItem("saved_state")
+        ]).then(this.loadSettings.bind(this))
+    }
+    dataLoaded({ settings, savedState }) {
+        this.setState({ settings, hasSavedState: savedState ? true : false })
+    }
+    incrementLives(amount) {
+        const state = this.state
+        state["settings"]["lives"] += amount
+        this.setState(state)
+    }
     render() {
-        const lives = 3
+        const lives = this.state.settings.lives
         const hearts = Array.from({length: 6}, (value, i) => {
             return (<img src={heart} key={`h${i}`} className={i >= lives ? "disabled" : ""} />)
         })
@@ -20,10 +35,10 @@ class HomeScreen extends React.Component {
                 </div>
                 <div className={"content"}>
                     <div className={"buttons"}>
-                        <button className={"button"}>
+                        <button className={"button"} onClick={this.props.onStart}>
                             {"Start New Game"}
                         </button>
-                        <button className={"button"} disabled>
+                        <button className={"button"} disabled={!this.state.hasSavedState}>
                             {"Load Game"}
                         </button>
                     </div>
@@ -44,9 +59,13 @@ class HomeScreen extends React.Component {
                     </div>
                     <div className={"lives-container"}>
                         <div className={"label"}>{"Lives:"}</div>
-                        <button className={"decrement"}>{"-"}</button>
+                        <button className={"decrement"} onClick={this.incrementLives.bind(this, 1)}>
+                            {"-"}
+                        </button>
                         <div className={"hearts"}>{hearts}</div>
-                        <button className={"increment"}>{"+"}</button>
+                        <button className={"increment"} onClick={this.incrementLives.bind(this, -1)}>
+                            {"+"}
+                        </button>
                     </div>
                 </div>
             </div>

@@ -8,7 +8,10 @@ const config = require('../config.json')
 class EmulatorScreen extends React.Component {
     constructor(props) {
         super(props)
-        this.setState({ paused: false, saved: false })
+        if(!this.props.shouldLoadState)
+            this.setState({ paused: false, saved: false })
+        else
+            ; // load state here
     }
     onCanvasLoaded(canvas) {
         const self = this
@@ -40,8 +43,14 @@ class EmulatorScreen extends React.Component {
         }
     }
     pause() {
-        this.setState({ paused: !this.state.paused }, () => {
+        this.setState({ paused: !this.state.paused, saved: false }, () => {
             // pause/resume game here...
+            Module.ccall('toggle_pause', null, null)
+        })
+    }
+    save() {
+        this.setState({ saved: true }, () => {
+            // save state here...
         })
     }
     render() {
@@ -55,9 +64,11 @@ class EmulatorScreen extends React.Component {
                 <button className={"quit"} onClick={this.props.onQuit}>
                     <i class="material-icons">home</i>
                 </button>
-                <button className={"save"}>
-                    <i class="material-icons">save</i>
-                </button>
+                {(this.state.paused && ! this.state.saved) &&
+                    <button className={"save"} onClick={this.save.bind(this)}>
+                        <i class="material-icons">save</i>
+                    </button>
+                }
                 <button className={"pause"} onClick={this.pause.bind(this)}>
                     {!this.state.paused && <i class="material-icons">pause</i>}
                     {this.state.paused && <i class="material-icons">play arrow</i>}
@@ -69,6 +80,7 @@ class EmulatorScreen extends React.Component {
 
 EmulatorScreen.propTypes = {
     settings: PropTypes.object.isRequired,
+    savedState: PropTypes.object,
     onQuit: PropTypes.func.isRequired
 }
 

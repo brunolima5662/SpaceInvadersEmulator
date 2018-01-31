@@ -3,7 +3,6 @@ import ScriptJS from 'scriptjs'
 import localForage from 'localforage'
 import HomeScreen from './HomeScreen'
 import EmulatorScreen from './EmulatorScreen'
-import DefaultState from './default_state.json'
 import { malloc } from './Modules/helpers'
 import './app.scss'
 
@@ -11,7 +10,11 @@ class App extends React.Component {
     constructor(props) {
         super(props)
         const self  = this
-        self.state  = Object.assign({}, DefaultState);
+        this.setState({
+            runtimeInitialized: false,
+            emulatorRunning: false,
+            shouldLoadState: false
+        })
         const start = new Promise(resolve => {
             // load wasm and wait for it to fully load before moving on...
             ScriptJS("bin.js", resolve)
@@ -22,10 +25,9 @@ class App extends React.Component {
                 Module['onRuntimeInitialized'] = resolve
             })
         })
-        .then( () => localForage.getItem("settings") ) // load settings from local storage
-        .then(settings => {
+        .then(() => {
             // finally, render emulator screen
-            self.setState({ runtimeInitialized: true, settings })
+            self.setState({ runtimeInitialized: true })
         })
         .catch(console.error)
 
@@ -43,23 +45,24 @@ class App extends React.Component {
     componentWillUnmount() {
         document.removeEventListener("emulator_stop", this.onEmulatorStopped)
     }
-    startEmulation() {
-        this.setState({ emulatorRunning: true })
+    startEmulation(shouldLoadState) {
+        this.setState({ emulatorRunning: true, shouldLoadState })
     }
     stopEmulation() {
         Module.ccall('halt')
-        this.setState({ emulatorRunning: false })
+        this.setState({ emulatorRunning: false, shouldLoadState: false })
     }
     render () {
         return (
             <div id={"ui_container"}>
                 {(this.state.runtimeInitialized && this.state.emulatorRunning) &&
-                    <EmulatorScreen settings={this.state.settings} />
+                    <EmulatorScreen
+                        onQuit={this.stopEmulation.bind(this)}
+                        shouldLoadState={this.state.shouldLoadState}
+                    />
                 }
                 {(this.state.runtimeInitialized && !this.state.emulatorRunning) &&
-                    <HomeScreen
-                        onStart={this.startEmulation.bind(this)}
-                    />
+                    <HomeScreen onStart={this.startEmulation.bind(this)} />
                 }
                 {!this.state.runtimeInitialized &&
                     <div>loading...</div>
