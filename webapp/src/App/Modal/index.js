@@ -11,6 +11,7 @@ const styles = {
         alignItems: 'center'
     },
     modal: {
+        color: '#181818',
         maxWidth: '80%',
         maxHeight: '80%',
         minHeight: '20%',
@@ -19,25 +20,23 @@ const styles = {
         borderRadius: '4px',
         padding: '15px',
         boxShadow: '0px 0px 8px rgba(0, 0, 0, 0.12)',
-        display: 'grid',
-        gridTemplateColumns: 'auto',
-        gridTemplateRows: '30px 1fr 30px'
+        display: 'flex',
+        flexDirection: 'column'
     },
     title: {
-        gridColumn: '1 / 2',
-        gridRow: '1 / 2',
+        minHeight: '20px',
+        width: '100%',
         display: 'flex',
         justifyContent: 'flex-start',
-        textAlign: 'left',
-        color: 'black'
+        textAlign: 'left'
     },
     content: {
-        gridColumn: '1 / 2',
-        gridRow: '2 / 3',
+        flexGrow: 1,
+        width: '100%'
     },
     footer: {
-        gridColumn: '1 / 2',
-        gridRow: '3 / 4',
+        minHeight: '30px',
+        width: '100%',
         display: 'flex',
         justifyContent: 'flex-end'
     }

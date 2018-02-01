@@ -142,6 +142,7 @@ class HomeScreen extends React.Component {
                                 title={"Select Background Color"}
                                 open={this.state.selectingBackground}
                                 onClose={this.cancelBackground.bind(this)}
+                                actions={<div>{"Footer"}</div>}
                             >
                                 {"Hello there! This is a test"}
                             </Modal>
