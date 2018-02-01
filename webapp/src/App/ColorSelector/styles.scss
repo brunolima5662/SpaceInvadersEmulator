@@ -1,0 +1,72 @@
+
+.color-picker-title {
+    font-size: 16px;
+    font-family: "Poppins", sans-serif;
+}
+
+.color-picker-apply {
+    @include button($color: $color-primary-0);
+    font-family: "Poppins", sans-serif;
+}
+
+.color-picker-cancel {
+    @include button($color: $red);
+    font-family: "Poppins", sans-serif;
+}
+
+.color-picker-container {
+    display: flex;
+    flex-direction: column;
+    font-family: "Poppins", sans-serif;
+    width: 100%;
+    @include phones {
+        max-height: 300px;
+        max-width: 238px;
+    }
+    @include nonPhones {
+        max-height: 500px;
+        max-width: 408px;
+    }
+
+    .current {
+        @include margin(20px null 10px null);
+        @include phones { height: 30px; }
+        @include nonPhones { height: 60px; }
+        border-radius: 10px;
+        display: flex;
+        text-align: center;
+        justify-content: center;
+        align-items: center;
+        color: white;
+    }
+
+    .swatches {
+        width: 100%;
+        flex-grow: 1;
+        overflow-x: hidden;
+        overflow-y: auto;
+        display: flex;
+        flex-wrap: wrap;
+        margin-bottom: 10px;
+
+        .swatch {
+            @include size(20px);
+            margin: 5px;
+            border-radius: 20px;
+            border: 2px solid white;
+            box-shadow: 0px 0px 9px rgba(0, 0, 0, 0.4);
+            cursor: pointer;
+            .selected {
+                border: 2px solid #181818;
+            }
+            &:hover {
+                @include size(24px);
+                margin: 3px;
+                border-radius: 24px;
+                border: 2px solid #D8D8D8;
+            }
+
+        }
+    }
+
+}

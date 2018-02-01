@@ -1,7 +1,7 @@
 import React from 'react'
 import localForage from 'localforage'
 import DefaultSettings from '../default_settings.json'
-import Modal from '../Modal'
+import ColorSelector from '../ColorSelector'
 import { rgb332, rgb888 } from '../Modules/helpers'
 import logo from './logo.png'
 import heart from './heart.png'
@@ -54,13 +54,13 @@ class HomeScreen extends React.Component {
     }
     setForeground(color) {
         const settings = Object.assign({}, this.state.settings, {
-            foreground: color.hex
+            foreground: color
         })
         this.setState({ settings })
     }
     setBackground(color) {
         const settings = Object.assign({}, this.state.settings, {
-            background: color.hex
+            background: color
         })
         this.setState({ settings })
     }
@@ -138,14 +138,14 @@ class HomeScreen extends React.Component {
                             style={{ backgroundColor: this.state.settings.background }}
                             >
                             </div>
-                            <Modal
-                                title={"Select Background Color"}
-                                open={this.state.selectingBackground}
-                                onClose={this.cancelBackground.bind(this)}
-                                actions={<div>{"Footer"}</div>}
-                            >
-                                {"Hello there! This is a test"}
-                            </Modal>
+                            <ColorSelector
+                            title={"Select Background Color"}
+                            isOpen={this.state.selectingBackground}
+                            onApply={this.applyBackground.bind(this)}
+                            onCancel={this.cancelBackground.bind(this)}
+                            color={this.state.settings.background}
+                            onColorSet={this.setBackground.bind(this)}
+                            />
                         </div>
                     </div>
                     <div className={"lives-container"}>

@@ -1,0 +1,47 @@
+@mixin phones {
+    @media only screen
+        and (max-device-width: 480px)
+        and (orientation: portrait) { @content; }
+}
+@mixin tablets {
+    @media only screen
+        and (min-device-width:  481px)
+        and (max-device-width: 1024px)
+        { @content; }
+}
+@mixin desktops {
+    @media only screen
+        and (min-device-width: 1025px)
+        { @content; }
+}
+@mixin nonPhones {
+    @media only screen
+        and (min-device-width:  481px)
+        { @content; }
+}
+@mixin gridAlign($horizontal, $vertical: false) {
+    justify-self: $horizontal;
+    align-self: if($vertical == false, $horizontal, $vertical);
+}
+
+// $type: flat, box, or round
+@mixin button($type: "flat", $color: black, $textcolor: white) {
+    @if $type == "box" or $type == "round" {
+        background-color: $color;
+        color: $textcolor;
+        @if $type == "round" { border-radius: 4px; }
+        &:hover  { background-color: darken($color, 5%); }
+        &:active { background-color: darken($color, 15%); }
+    } @else {
+        background-color: transparent;
+        color: $color;
+        &:hover  { color: darken($color, 5%); }
+        &:active { color: darken($color, 15%); }
+    }
+    @include padding(0.5ex 1ex);
+    border-width: 0px;
+    outline: none;
+    font-size: 16px;
+    font-family: $font-family;
+    cursor: pointer;
+}

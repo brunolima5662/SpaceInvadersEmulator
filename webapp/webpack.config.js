@@ -14,6 +14,7 @@ const sass_prepend = [
     `$render-width:  ${theme["render-width"]}px;`,
     `$render-height: ${theme["render-height"]}px;`,
     '@import "theme";',
+    '@import "modules";'
 ].join('\n')
 
 module.exports = {

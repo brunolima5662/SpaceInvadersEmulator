@@ -1,22 +1,61 @@
 import React from 'react'
-import { CirclePicker } from 'react-color'
-import Dialog from 'material-ui/Dialog'
-import FlatButton from 'material-ui/FlatButton'
+import PropTypes from 'prop-types'
+import Modal from '../Modal'
+import './styles.scss'
 
-const ColorSelector = ({ type, isOpen, onApply, onCancel, color, onColorSet }) => (
-    <Dialog
-    title={`Select ${ type } Color`}
-    modal={true}
+const defaultPalette = [
+    "#f44336", "#e91e63", "#9c27b0", "#673ab7", "#3f51b5", "#2196f3",
+    "#03a9f4", "#00bcd4", "#009688", "#4caf50", "#8bc34a", "#cddc39",
+    "#ffeb3b", "#ffc107", "#ff9800", "#ff5722", "#795548", "#607d8b"
+]
+
+const ColorSelector = ({ title, isOpen, onApply, onCancel, color, palette, onColorSet }) => (
+    <Modal
     open={isOpen}
+    onClose={onCancel}
+    title={( <div className={"color-picker-title"}> {title} </div> )}
     actions={[
-        <FlatButton label="Cancel" primary={true} onClick={onCancel}  />,
-        <FlatButton label="Apply" primary={true} onClick={onApply}  />
+        (
+            <button className={"color-picker-cancel"} onClick={onCancel}>
+                {"Cancel"}
+            </button>
+        ),
+        (
+            <button className={"color-picker-apply"} onClick={onApply}>
+                {"Apply"}
+            </button>
+        )
     ]}>
-        <CirclePicker
-        color={ color }
-        onChangeComplete={ onColorSet }
-        />
-    </Dialog>
+        <div className={"color-picker-container"}>
+            <div className={"current"} style={{backgroundColor: color}}>
+                {color}
+            </div>
+            <div className={"swatches"}>
+                {(palette || defaultPalette).map(c => {
+                    return (
+                        <div
+                        key={c}
+                        className={`swatch ${c == color ? 'selected' : ''}`}
+                        onClick={onColorSet.bind(null, c)}
+                        style={{backgroundColor: c}}
+                        >
+                        </div>
+                    )
+                })}
+            </div>
+
+        </div>
+    </Modal>
 )
+
+ColorSelector.propTypes = {
+    title: PropTypes.string.isRequired,
+    isOpen: PropTypes.bool.isRequired,
+    onApply: PropTypes.func.isRequired,
+    onCancel: PropTypes.func.isRequired,
+    color: PropTypes.string.isRequired,
+    palette: PropTypes.array,
+    onColorSet: PropTypes.func.isRequired
+}
 
 export default ColorSelector
