@@ -9,7 +9,7 @@ class EmulatorScreen extends React.Component {
     constructor(props) {
         super(props)
         if(!this.props.shouldLoadState)
-            this.setState({ paused: false, saved: false })
+            this.state = { paused: false, saved: false }
         else
             ; // load state here
     }
@@ -56,31 +56,32 @@ class EmulatorScreen extends React.Component {
     render() {
         return (
             <div className={"emulator-screen"}>
-                <canvas
-                    ref={this.onCanvasLoaded.bind(this)}
-                    height={theme["render-height"]}
-                    width={theme["render-width"]}>
-                </canvas>
-                <button className={"quit"} onClick={this.props.onQuit}>
-                    <i class="material-icons">home</i>
-                </button>
-                {(this.state.paused && ! this.state.saved) &&
-                    <button className={"save"} onClick={this.save.bind(this)}>
-                        <i class="material-icons">save</i>
+                <div className={"screen"}>
+                    <canvas
+                        ref={this.onCanvasLoaded.bind(this)}
+                        height={theme["render-height"]}
+                        width={theme["render-width"]}>
+                    </canvas>
+                    <button className={"quit"} onClick={this.props.onQuit}>
+                        <i className="material-icons">home</i>
                     </button>
-                }
-                <button className={"pause"} onClick={this.pause.bind(this)}>
-                    {!this.state.paused && <i class="material-icons">pause</i>}
-                    {this.state.paused && <i class="material-icons">play arrow</i>}
-                </button>
+                    {(this.state.paused && ! this.state.saved) &&
+                        <button className={"save"} onClick={this.save.bind(this)}>
+                            <i className="material-icons">save</i>
+                        </button>
+                    }
+                    <button className={"pause"} onClick={this.pause.bind(this)}>
+                        {!this.state.paused && <i className="material-icons">pause</i>}
+                        {this.state.paused && <i className="material-icons">play arrow</i>}
+                    </button>
+                </div>
             </div>
         )
     }
 }
 
 EmulatorScreen.propTypes = {
-    settings: PropTypes.object.isRequired,
-    savedState: PropTypes.object,
+    shouldLoadState: PropTypes.bool,
     onQuit: PropTypes.func.isRequired
 }
 

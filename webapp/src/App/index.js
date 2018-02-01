@@ -10,11 +10,11 @@ class App extends React.Component {
     constructor(props) {
         super(props)
         const self  = this
-        this.setState({
+        this.state = {
             runtimeInitialized: false,
             emulatorRunning: false,
             shouldLoadState: false
-        })
+        }
         const start = new Promise(resolve => {
             // load wasm and wait for it to fully load before moving on...
             ScriptJS("bin.js", resolve)
@@ -30,7 +30,6 @@ class App extends React.Component {
             self.setState({ runtimeInitialized: true })
         })
         .catch(console.error)
-
         // the emulator will dispatch an event that the following
         // method will handle when it finishes on its own...
         this.onEmulatorStopped = ev => {

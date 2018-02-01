@@ -11,7 +11,5 @@ localForage.getItem("settings").then(settings => {
     else
         return Promise.resolve()
 })
-.then(() => {
-    render( <App />, document.getElementById('app') )
-})
+.then(() => render( <App />, document.getElementById('app') ) )
 .catch(console.error)

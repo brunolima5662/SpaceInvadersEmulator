@@ -3,3 +3,7 @@ $render-max-scale: 3;
 $color-primary-0: #55D555;
 $color-background: #181818;
 $font-family: 'Press Start 2P', cursive;
+
+:export {
+    colorPrimary: $color-primary-0;
+}

@@ -1,15 +1,19 @@
 @mixin button($size: 40px) {
     @include size($size);
-    background-color: rgba(255, 255, 255, 0.4);
+    background-color: $color-primary-0;
     border-radius: $size;
-    font-size: 36px;
+    padding: 0.5ex;
+    border: none;
+    outline: none;
+    font-size: 27px;
     color: white;
+    cursor: pointer;
 }
 .emulator-screen {
     @include position(absolute, 0 0 0 0);
     margin: 0px;
 
-    canvas {
+    .screen {
         &::before, &::after {
             content: '';
             display: table;
@@ -23,6 +27,7 @@
         background-color: #000;
         max-width: $render-width * $render-max-scale;
         max-height: $render-height * $render-max-scale;
+        z-index: 0;
         @media screen and (orientation: landscape) {
             height: 100%;
         }
@@ -30,18 +35,32 @@
             width: 100%;
         }
 
+        canvas {
+            @include position(absolute, 0 0 0 0);
+            z-index: 1;
+        }
+
+        .pause {
+
+            @include button();
+            @include position(absolute, 15px 15px null null);
+            opacity: 0.78;
+            z-index: 3;
+        }
+        .save {
+            @include position(absolute, 15px 60px null null);
+            @include button();
+            opacity: 0.78;
+            z-index: 2;
+        }
+        .quit {
+            @include position(absolute, 15px null null 15px);
+            @include button();
+            opacity: 0.78;
+            z-index: 2;
+        }
+
     }
 
-    .pause {
-        @include position(absolute, 15 15 null null);
-        @include button();
-    }
-    .save {
-        @include position(absolute, 15 60 null null);
-        @include button();
-    }
-    .quit {
-        @include position(absolute, 15 null null 15);
-        @include button();
-    }
+
 }
