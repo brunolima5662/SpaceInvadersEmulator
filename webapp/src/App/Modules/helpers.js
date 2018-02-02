@@ -40,7 +40,7 @@ export const rgb332 = hex => {
 // generate 38-color rgb332 palette in the format rgb888
 export const generateRGB332Palette = () => {
     const shades = Array.from({ length: 2 }, (v, shade) => {
-        const shade_index = parseInt( Math.round( ( ( shade + 1 ) / 4.0 * 7.0 ) ) )
+        const shade_index = parseInt( Math.round( ( ( shade + 1.0 ) / 4.0 * 7.0 ) ) )
         return [
             rgb888( shade_index << 5 ), // red
             rgb888( shade_index << 2 ), // green
