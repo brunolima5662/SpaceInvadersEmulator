@@ -1,6 +1,6 @@
 {
     "set_colors_mask": 0,
-    "foreground": 255,
-    "background": 0,
+    "foreground": "#ffffff",
+    "background": "#000000",
     "lives": 3
 }

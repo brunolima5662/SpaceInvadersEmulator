@@ -56,14 +56,13 @@
             border: 2px solid white;
             box-shadow: 0px 0px 9px rgba(0, 0, 0, 0.4);
             cursor: pointer;
-            .selected {
-                border: 2px solid #181818;
+            &.selected {
+                box-shadow: 0px 0px 12px rgba(0, 0, 0, 0.75);
             }
             &:hover {
                 @include size(24px);
                 margin: 3px;
                 border-radius: 24px;
-                border: 2px solid #D8D8D8;
             }
 
         }

@@ -22,9 +22,7 @@ export const rgb888 = color => {
 
     return rgb.map(v => {
         return ( v.length == 1 ) ? `0${v}` : v
-    }).reduce((hex, v) => {
-        return hex + v
-    }, '#')
+    }).reduce(( hex, v ) => ( hex + v ), '#')
 }
 
 // convert hex color value of format rgb888 to a single byte color
@@ -39,4 +37,33 @@ export const rgb332 = hex => {
     return ( ( rgb[0] << 5 ) | ( rgb[1] << 2 ) | rgb[2] )
 }
 
-export default { malloc, rgb332, rgb888 }
+// generate 38-color rgb332 palette in the format rgb888
+export const generateRGB332Palette = () => {
+    const shades = Array.from({ length: 2 }, (v, shade) => {
+        const shade_index = parseInt( Math.round( ( ( shade + 1 ) / 4.0 * 7.0 ) ) )
+        return [
+            rgb888( shade_index << 5 ), // red
+            rgb888( shade_index << 2 ), // green
+            rgb888( shade + 1 ), // blue
+            rgb888( shade_index << 5 | ( shade + 1 ) ), // magenta
+            rgb888( shade_index << 2 | ( shade + 1 ) ), // cyan
+            rgb888( shade_index << 5 | shade_index << 2  ), // yellow
+        ]
+    })
+    const tints = Array.from({ length: 3 }, (v, tint) => {
+        const tint_index = parseInt( Math.round( ( tint / 4.0 * 7.0 ) ) )
+        return [
+            rgb888( 0xe0 | tint_index << 2 | tint ), // red
+            rgb888( 0x1c | tint_index << 5 | tint ), // green
+            rgb888( 0x03 | tint_index << 5 | tint_index << 2 ), // blue
+            rgb888( 0xe3 | tint_index << 2 ), // magenta
+            rgb888( 0x1f | tint_index << 5 ), // cyan
+            rgb888( 0xfc | tint ), // yellow
+        ]
+    })
+    return [ '#000000',
+        ...shades[0], ...shades[1], ...tints[0], ...tints[1], ...tints[2],
+    '#ffffff' ]
+}
+
+export default { malloc, rgb332, rgb888, generateRGB332Palette }

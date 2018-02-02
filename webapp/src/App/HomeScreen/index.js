@@ -2,22 +2,23 @@ import React from 'react'
 import localForage from 'localforage'
 import DefaultSettings from '../default_settings.json'
 import ColorSelector from '../ColorSelector'
-import { rgb332, rgb888 } from '../Modules/helpers'
+import { generateRGB332Palette } from '../Modules/helpers'
 import logo from './logo.png'
 import heart from './heart.png'
 import './home_screen.scss'
 
+const palette = generateRGB332Palette()
+
 class HomeScreen extends React.Component {
     constructor(props) {
         super(props)
-        console.log(DefaultSettings)
         this.state = {
             settings: DefaultSettings,
             hasSavedState: false,
             selectingForeground: false,
             selectingBackground: false,
             tempForeground: "#FFFFFF",
-            tempBackground: "#000000"
+            tempBackground: "#000000",
         }
         Promise.all([
             localForage.getItem("settings"),
@@ -25,19 +26,13 @@ class HomeScreen extends React.Component {
         ]).then(this.dataLoaded.bind(this))
     }
     dataLoaded([ settings, savedState ]) {
-        settings["foreground"] = rgb888( settings["foreground"] )
-        settings["background"] = rgb888( settings["background"] )
         this.setState({ settings, hasSavedState: savedState ? true : false })
     }
     incrementLives(amount) {
         const lives = Math.max( Math.min( this.state["settings"]["lives"] + amount, 6 ), 3 )
         const settings = Object.assign({}, this.state.settings, { lives })
         this.setState({ settings }, () => {
-            const new_settings = Object.assign({}, this.state.settings, {
-                background: rgb332( this.state.settings.background ),
-                foreground: rgb332( this.state.settings.foreground )
-            })
-            localForage.setItem("settings", new_settings)
+            localForage.setItem("settings", this.state.settings)
         })
     }
     selectForeground() {
@@ -66,20 +61,12 @@ class HomeScreen extends React.Component {
     }
     applyForeground() {
         this.setState({ selectingForeground: false }, () => {
-            const new_settings = Object.assign({}, this.state.settings, {
-                background: rgb332( this.state.settings.background ),
-                foreground: rgb332( this.state.settings.foreground )
-            })
-            localForage.setItem("settings", new_settings)
+            localForage.setItem("settings", this.state.settings)
         })
     }
     applyBackground(color) {
         this.setState({ selectingBackground: false }, () => {
-            const new_settings = Object.assign({}, this.state.settings, {
-                background: rgb332( this.state.settings.background ),
-                foreground: rgb332( this.state.settings.foreground )
-            })
-            localForage.setItem("settings", new_settings)
+            localForage.setItem("settings", this.state.settings)
         })
     }
     cancelForeground() {
@@ -129,6 +116,15 @@ class HomeScreen extends React.Component {
                             style={{ backgroundColor: this.state.settings.foreground }}
                             >
                             </div>
+                            <ColorSelector
+                            title={"Select Foreground Color"}
+                            isOpen={this.state.selectingForeground}
+                            onApply={this.applyForeground.bind(this)}
+                            onCancel={this.cancelForeground.bind(this)}
+                            color={this.state.settings.foreground}
+                            palette={palette}
+                            onColorSet={this.setForeground.bind(this)}
+                            />
                         </div>
                         <div className={"color-select"}>
                             <div>{"Background Color"}</div>
@@ -144,6 +140,7 @@ class HomeScreen extends React.Component {
                             onApply={this.applyBackground.bind(this)}
                             onCancel={this.cancelBackground.bind(this)}
                             color={this.state.settings.background}
+                            palette={palette}
                             onColorSet={this.setBackground.bind(this)}
                             />
                         </div>

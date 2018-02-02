@@ -16,12 +16,12 @@ const ColorSelector = ({ title, isOpen, onApply, onCancel, color, palette, onCol
     title={( <div className={"color-picker-title"}> {title} </div> )}
     actions={[
         (
-            <button className={"color-picker-cancel"} onClick={onCancel}>
+            <button className={"color-picker-cancel"} onClick={onCancel} key={"cancel"}>
                 {"Cancel"}
             </button>
         ),
         (
-            <button className={"color-picker-apply"} onClick={onApply}>
+            <button className={"color-picker-apply"} onClick={onApply} key={"apply"}>
                 {"Apply"}
             </button>
         )
