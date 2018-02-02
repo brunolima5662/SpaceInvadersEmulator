@@ -1,5 +1,6 @@
 import React from 'react'
 import PropTypes from 'prop-types'
+import localForage from 'localforage'
 import _ from 'lodash'
 import './emulator_screen.scss'
 const theme  = require('../../../theme.json')
@@ -14,32 +15,32 @@ class EmulatorScreen extends React.Component {
             ; // load state here
     }
     onCanvasLoaded(canvas) {
-        const self = this
-
         if(!this.loaded) {
             this.loaded = true
-            try {
-                const types = config["emulator_arg_types"]
-                const args  = _.reduce(config["emulator_args"], (a, v, k) => {
-                    const setting = self.props.settings[k]
-                    if(setting)
-                        a[v] = setting
-                    else
-                        a[v] = 0
-                    return a
-                }, new Array(types.length))
-                Module['canvas'] = canvas
-                Module.ccall('mainf', 'number', types, args)
-            }
-            catch(error) {
-                // suppress the 'SimulateInfiniteLoop' error since it's
-                // not really an error, it's the mechanism that emscripten
-                // uses to be able to simulate an infinite loop in a JS
-                // environment. If it's not caught, it will break the
-                // React component.
-                if(error !== "SimulateInfiniteLoop")
-                    console.error(error.message)
-            }
+            localForage.getItem("settings").then(settings => {
+                try {
+                    const types = config["emulator_arg_types"]
+                    const args  = _.reduce(config["emulator_args"], (a, v, k) => {
+                        const setting = settings[k]
+                        if(setting)
+                            a[v] = setting
+                        else
+                            a[v] = 0
+                        return a
+                    }, new Array(types.length))
+                    Module['canvas'] = canvas
+                    Module.ccall('mainf', 'number', types, args)
+                }
+                catch(error) {
+                    // suppress the 'SimulateInfiniteLoop' error since it's
+                    // not really an error, it's the mechanism that emscripten
+                    // uses to be able to simulate an infinite loop in a JS
+                    // environment. If it's not caught, it will break the
+                    // React component.
+                    if(error !== "SimulateInfiniteLoop")
+                        console.error(error.message)
+                }
+            })
         }
     }
     pause() {
@@ -72,7 +73,7 @@ class EmulatorScreen extends React.Component {
                     }
                     <button className={"pause"} onClick={this.pause.bind(this)}>
                         {!this.state.paused && <i className="material-icons">pause</i>}
-                        {this.state.paused && <i className="material-icons">play arrow</i>}
+                        {this.state.paused && <i className="material-icons">play_arrow</i>}
                     </button>
                 </div>
             </div>

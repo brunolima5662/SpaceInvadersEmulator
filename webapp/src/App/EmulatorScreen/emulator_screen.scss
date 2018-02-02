@@ -44,19 +44,19 @@
 
             @include button();
             @include position(absolute, 15px 15px null null);
-            opacity: 0.78;
+            opacity: 0.9;
             z-index: 3;
         }
         .save {
             @include position(absolute, 15px 60px null null);
             @include button();
-            opacity: 0.78;
+            opacity: 0.9;
             z-index: 2;
         }
         .quit {
             @include position(absolute, 15px null null 15px);
             @include button();
-            opacity: 0.78;
+            opacity: 0.9;
             z-index: 2;
         }
 

@@ -28,7 +28,9 @@ const ColorSelector = ({ title, isOpen, onApply, onCancel, color, palette, onCol
     ]}>
         <div className={"color-picker-container"}>
             <div className={"current"} style={{backgroundColor: color}}>
-                {color}
+                <div style={{mixBlendMode: 'difference'}}>
+                    {color}
+                </div>
             </div>
             <div className={"swatches"}>
                 {(palette || defaultPalette).map(c => {

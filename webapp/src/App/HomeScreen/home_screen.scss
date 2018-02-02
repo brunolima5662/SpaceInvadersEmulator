@@ -48,11 +48,16 @@
     .content {
         grid-column: 2 / 3;
         grid-row: 4 / 5;
-        @include phones { font-size: 16px; }
-        @include nonPhones { font-size: 36px; }
         display: grid;
         grid-template-columns: 5% auto 5%;
-        grid-template-rows: 5% 16% 8% 7% 8% 26% 8% 14% auto;
+        @include phones {
+            font-size: 14px;
+            grid-template-rows: 5% 26% 6% 7% 6% 26% 8% 14% auto;
+        }
+        @include nonPhones {
+            font-size: 36px;
+            grid-template-rows: 5% 16% 8% 7% 8% 26% 8% 14% auto;
+        }
 
 
         .buttons {
@@ -60,9 +65,12 @@
             grid-row: 2 / 3;
             display: flex;
             justify-content: space-between;
+            @include phones { flex-direction: column; }
             .button {
                 @include button($type: "box", $color: $color-primary-0);
-                @include size(45%, 100%);
+                @include phones { width: 100%; }
+                @include nonPhones { @include size(45%, 100%); }
+                padding: 1ex;
                 line-height: 2.5ex;
                 &:disabled {
                     background-color: #BCBCBC;
@@ -85,7 +93,7 @@
             justify-content: space-between;
             .color-select {
                 background-color: $color-primary-0;
-                @include phones { font-size: 14px; }
+                @include phones { font-size: 12px; }
                 @include nonPhones { font-size: 20px; }
                 @include size(45%, 100%);
                 text-align: center;
@@ -107,11 +115,16 @@
             @include size(100%, 100%);
             grid-column: 2 / 3;
             grid-row: 8 / 9;
-            font-size: 16px;
             background-color: $color-primary-0;
             display: grid;
-            grid-template-columns: 5% 18% auto 5% 1% 40% 1% 5% 5%;
             grid-template-rows: 5% auto 5%;
+            @include phones {
+                grid-template-columns: 8% 24% auto 5% 1% 40% 1% 5% 5%;
+                font-size: 14px;
+            }
+            @include nonPhones {
+                font-size: 16px;
+            }
             .label {
                 grid-row: 2 / 3;
                 grid-column: 2 / 3;
@@ -136,7 +149,8 @@
                 display: flex;
                 justify-content: space-around;
                 img {
-                    @include size(30px, 30px);
+                    @include phones { @include size(20px, 20px); }
+                    @include nonPhones { @include size(30px, 30px); }
                     &.disabled { filter: grayscale(1); }
                 }
             }

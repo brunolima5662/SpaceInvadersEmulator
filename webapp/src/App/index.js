@@ -44,7 +44,7 @@ class App extends React.Component {
     componentWillUnmount() {
         document.removeEventListener("emulator_stop", this.onEmulatorStopped)
     }
-    startEmulation(shouldLoadState) {
+    startEmulation(shouldLoadState = false) {
         this.setState({ emulatorRunning: true, shouldLoadState })
     }
     stopEmulation() {

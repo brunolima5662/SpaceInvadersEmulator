@@ -97,7 +97,7 @@ class HomeScreen extends React.Component {
                 </div>
                 <div className={"content"}>
                     <div className={"buttons"}>
-                        <button className={"button"} onClick={this.props.onStart}>
+                        <button className={"button"} onClick={() => this.props.onStart()}>
                             {"Start New Game"}
                         </button>
                         <button className={"button"} disabled={!this.state.hasSavedState}>
@@ -145,7 +145,7 @@ class HomeScreen extends React.Component {
                             />
                         </div>
                     </div>
-                    <div className={"lives-container"}>
+                    {<div className={"lives-container"}>
                         <div className={"label"}>{"Lives:"}</div>
                         <button className={"decrement"} onClick={this.incrementLives.bind(this, -1)}>
                             {"-"}
@@ -154,7 +154,7 @@ class HomeScreen extends React.Component {
                         <button className={"increment"} onClick={this.incrementLives.bind(this, 1)}>
                             {"+"}
                         </button>
-                    </div>
+                    </div>}
                 </div>
             </div>
         )
