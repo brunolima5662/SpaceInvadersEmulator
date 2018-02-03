@@ -62,7 +62,10 @@ class App extends React.Component {
                     <HomeScreen onStart={this.startEmulation.bind(this)} />
                 }
                 {!this.state.runtimeInitialized &&
-                    <div>loading...</div>
+                    <div id={"loader"}>
+                        <div className={"loader"}></div>
+                        <div className={"label"}>{"loading..."}</div>
+                    </div>
                 }
             </div>
         )

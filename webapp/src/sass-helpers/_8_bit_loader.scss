@@ -1,20 +1,21 @@
 
-@mixin 8bit-loader($size: $r1, $color: black) {
+@mixin eightBitLoader($size: $r1, $color: black, $duration: 1s) {
     $id: unique_id() !global;
-    animation: $id 1s linear infinite;
-    height: $size;
-    width: $size;
+    animation: $id $duration linear infinite;
 
-    $r3:  $size / 3;
-    $r2:  $size / 1.5;
-    $r1:  $size;
+    $r3:  ( $size + 20px ) / 9;
+    $r2:  ( $size + 20px ) / 4.5;
+    $r1:  ( $size + 20px ) / 3;
     $nr1: 0 - $r1;
     $nr2: 0 - $r2;
     $nr3: 0 - $r3;
-    
+
+    height: $r3;
+    width: $r3;
+
     @keyframes #{$id} {
         @for $i from 0 through 16 {
-            #{$i / 16 * 100}% {
+            #{( $i / 16 ) * 100}% {
                 box-shadow:
                     0px $nr1 if($i > 0 and $i < 9, transparent, $color),
                     $r3 $nr1 if($i > 1 and $i < 10, transparent, $color),
@@ -31,8 +32,7 @@
                     $nr1 0px if($i > 12 or $i < 5, transparent, $color),
                     $nr1 $nr3 if($i > 13 or $i < 6, transparent, $color),
                     $nr2 $nr2 if($i > 14 or $i < 7, transparent, $color),
-                    $nr3 $nr1 if($i > 15 or $i < 8, transparent, $color),
-                }
+                    $nr3 $nr1 if($i > 15 or $i < 8, transparent, $color);
             }
         }
     }
