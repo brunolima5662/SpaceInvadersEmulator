@@ -23,6 +23,12 @@
     justify-self: $horizontal;
     align-self: if($vertical == false, $horizontal, $vertical);
 }
+@mixin autoContrastText() {
+    background: inherit;
+    @include prefixer(background-clip, text, ("webkit", "moz", "o"));
+    color: transparent;
+    filter: invert(1) grayscale(1) contrast(9);
+}
 
 // $type: flat, box, or round
 @mixin button($type: "flat", $color: black, $textcolor: white) {
@@ -44,5 +50,17 @@
     @include phones { font-size: 14px; }
     @include nonPhones { font-size: 16px; }
     font-family: $font-family;
+    cursor: pointer;
+}
+
+@mixin round-button($size: 40px) {
+    @include size($size);
+    background-color: $color-primary-0;
+    border-radius: $size;
+    padding: 0.5ex;
+    border: none;
+    outline: none;
+    font-size: 27px;
+    color: white;
     cursor: pointer;
 }

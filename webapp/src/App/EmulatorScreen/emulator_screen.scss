@@ -1,14 +1,4 @@
-@mixin button($size: 40px) {
-    @include size($size);
-    background-color: $color-primary-0;
-    border-radius: $size;
-    padding: 0.5ex;
-    border: none;
-    outline: none;
-    font-size: 27px;
-    color: white;
-    cursor: pointer;
-}
+
 .emulator-screen {
     @include position(absolute, 0 0 0 0);
     margin: 0px;
@@ -42,20 +32,20 @@
 
         .pause {
 
-            @include button();
+            @include round-button();
             @include position(absolute, 15px 15px null null);
             opacity: 0.9;
             z-index: 3;
         }
         .save {
             @include position(absolute, 15px 60px null null);
-            @include button();
+            @include round-button();
             opacity: 0.9;
             z-index: 2;
         }
         .quit {
             @include position(absolute, 15px null null 15px);
-            @include button();
+            @include round-button();
             opacity: 0.9;
             z-index: 2;
         }
