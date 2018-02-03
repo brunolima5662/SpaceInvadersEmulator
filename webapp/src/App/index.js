@@ -32,9 +32,7 @@ class App extends React.Component {
         .catch(console.error)
         // the emulator will dispatch an event that the following
         // method will handle when it finishes on its own...
-        this.onEmulatorStopped = ev => {
-            this.setState({ emulatorRunning: false })
-        }
+        this.onEmulatorStopped = ev => window.location.reload(false)
 
     }
     componentDidMount() {
@@ -49,7 +47,7 @@ class App extends React.Component {
     }
     stopEmulation() {
         Module.ccall('halt')
-        this.setState({ emulatorRunning: false, shouldLoadState: false })
+        window.location.reload(false)
     }
     render () {
         return (
