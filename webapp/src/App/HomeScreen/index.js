@@ -103,7 +103,7 @@ class HomeScreen extends React.Component {
                         </button>
                         <button
                         className={"button"}
-                        onClick={() => this.props.onStart(true)}>
+                        onClick={() => this.props.onStart(true)}
                         disabled={!this.state.hasSavedState}
                         >
                             {"Load Game"}

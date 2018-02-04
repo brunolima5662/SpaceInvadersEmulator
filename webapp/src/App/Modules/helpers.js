@@ -6,9 +6,8 @@
 export const cArray = arr => {
     const bytes     = arr.length * arr.BYTES_PER_ELEMENT
     const pointer   = Module._malloc( bytes )
-    const heapBytes = new Uint8Array( Module.HEAPU8.buffer, pointer, bytes )
-    heapBytes.set( new Uint8Array( arr.buffer ) )
-    return heapBytes
+    Module.HEAPU8.set( arr, pointer )
+    return pointer
 }
 
 // convert a c array into a javascript UInt8Array by reading
