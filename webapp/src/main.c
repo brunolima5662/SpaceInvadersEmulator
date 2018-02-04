@@ -42,7 +42,8 @@ int EMSCRIPTEN_KEEPALIVE mainf(
     uint8_t fcolor,
     uint8_t bcolor,
     uint8_t lives,
-    uint8_t * state
+    uint8_t * saved_state,
+    uint8_t * saved_machine
 ) {
     uint8_t done = 0, paused = 0;
     uint8_t corrected_lives  = (lives >= 3 && lives <= 6) ? lives : 3;
@@ -83,26 +84,36 @@ int EMSCRIPTEN_KEEPALIVE mainf(
 
     // declare and initialize machine
     machine_t machine;
-    initialize_machine(&machine, corrected_lives);
-
-    // read rom file into memory
-    rom = fopen("assets/ROM", "rb");
-    if (rom == NULL) {
-        fprintf(stderr, "ROM file invalid, exiting...\n");
-        Mix_Quit();
-        SDL_Quit();
-        exit(EXIT_FAILURE);
+    if(saved_state && saved_machine) {
+        load_machine(&machine, saved_machine, saved_state);
     }
+    else {
+        if(saved_state)
+            free(saved_state);
+        if(saved_machine)
+            free(saved_machine);
+
+        initialize_machine(&machine, corrected_lives);
+
+        // read rom file into memory
+        rom = fopen("assets/ROM", "rb");
+        if (rom == NULL) {
+            fprintf(stderr, "ROM file invalid, exiting...\n");
+            Mix_Quit();
+            SDL_Quit();
+            exit(EXIT_FAILURE);
+        }
 
 
-    // fetch the file size
-    fseek(rom, 0, SEEK_END);
-    uint16_t size = ftell(rom);
-    fseek(rom, 0, SEEK_SET);
+        // fetch the file size
+        fseek(rom, 0, SEEK_END);
+        uint16_t size = ftell(rom);
+        fseek(rom, 0, SEEK_SET);
 
-    // load rom into machine's ram
-    fread(&machine.memory[0], size, 1, rom);
-    fclose(rom);
+        // load rom into machine's ram
+        fread(&machine.memory[0], size, 1, rom);
+        fclose(rom);
+    }
 
 
     // initialize SDL window, renderer, and texture
@@ -163,6 +174,36 @@ void EMSCRIPTEN_KEEPALIVE halt() {
 // command from pause / resume emulation
 void EMSCRIPTEN_KEEPALIVE toggle_pause() {
     context.paused ^= 0x01;
+}
+
+uint32_t EMSCRIPTEN_KEEPALIVE get_state() {
+    return (uint32_t)(&(context.machine->memory[0]));
+}
+
+uint32_t EMSCRIPTEN_KEEPALIVE get_machine() {
+    uint8_t * machine = (uint8_t *)malloc(19 + (2 * IO_PORTS));
+    machine[0] = context.machine->a;
+    machine[1] = context.machine->b;
+    machine[2] = context.machine->c;
+    machine[3] = context.machine->d;
+    machine[4] = context.machine->e;
+    machine[5] = context.machine->h;
+    machine[6] = context.machine->l;
+    machine[7] = (uint8_t)(context.machine->pc >> 8);
+    machine[8] = (uint8_t)(context.machine->pc & 0xff);
+    machine[9] = (uint8_t)(context.machine->sp >> 8);
+    machine[10] = (uint8_t)(context.machine->sp & 0xff);
+    machine[11] = context.machine->z;
+    machine[12] = context.machine->s;
+    machine[13] = context.machine->p;
+    machine[14] = context.machine->cy;
+    machine[15] = context.machine->shift_hi;
+    machine[16] = context.machine->shift_lo;
+    machine[17] = context.machine->shift_offset;
+    machine[18] = context.machine->accept_interrupt;
+    memcpy(&machine[19], context.machine->ports_in, IO_PORTS);
+    memcpy(&machine[19 + IO_PORTS], context.machine->ports_out, IO_PORTS);
+    return (uint32_t)machine;
 }
 
 // cleanup after main loop finishes

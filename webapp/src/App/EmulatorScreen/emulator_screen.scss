@@ -36,6 +36,11 @@
             @include position(absolute, 15px 15px null null);
             opacity: 0.9;
             z-index: 3;
+
+            &:disabled {
+                background-color: #E8E8E8;
+                cursor: default;
+            }
         }
         .save {
             @include position(absolute, 15px 60px null null);

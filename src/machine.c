@@ -11,6 +11,33 @@ void initialize_machine(machine_t * state, uint8_t lives) {
     reset_program(state, lives);
 }
 
+void load_machine(machine_t * state, uint8_t * saved_machine, uint8_t * saved_state) {
+    memcpy(state->memory, saved_state, MEMORY_SIZE);
+    memset(state->channels, 0, SOUND_SAMPLES * 4);
+    load_sound_samples(state);
+    state->a = saved_machine[0];
+    state->b = saved_machine[1];
+    state->c = saved_machine[2];
+    state->d = saved_machine[3];
+    state->e = saved_machine[4];
+    state->h = saved_machine[5];
+    state->l = saved_machine[6];
+    state->pc = (saved_machine[7] << 8) | saved_machine[8];
+    state->sp = (saved_machine[9] << 8) | saved_machine[10];
+    state->z = saved_machine[11];
+    state->s = saved_machine[12];
+    state->p = saved_machine[13];
+    state->cy = saved_machine[14];
+    state->shift_hi = saved_machine[15];
+    state->shift_lo = saved_machine[16];
+    state->shift_offset = saved_machine[17];
+    state->accept_interrupt = saved_machine[18];
+    memcpy(state->ports_in, &(saved_machine[19]), IO_PORTS);
+    memcpy(state->ports_out, &(saved_machine[19 + IO_PORTS]), IO_PORTS);
+    free(saved_machine);
+    free(saved_state);
+}
+
 void reset_program(machine_t * state, uint8_t lives) {
     memset(state->ports_in, 0, IO_PORTS);
     memset(state->ports_out, 0, IO_PORTS);

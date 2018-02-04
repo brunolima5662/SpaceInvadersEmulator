@@ -2,32 +2,44 @@ import React from 'react'
 import PropTypes from 'prop-types'
 import localForage from 'localforage'
 import _ from 'lodash'
+import { cArray } from '../Modules/helpers'
 import './emulator_screen.scss'
+import { jsArray, freeCArray } from '../Modules/helpers'
 const theme  = require('../../../theme.json')
 const config = require('../config.json')
 
 class EmulatorScreen extends React.Component {
     constructor(props) {
         super(props)
-        if(!this.props.shouldLoadState)
-            this.state = { paused: false, saved: false }
-        else
-            ; // load state here
+        this.state = { paused: false, saved: false, saving: false }
     }
     onCanvasLoaded(canvas) {
         if(!this.loaded) {
             this.loaded = true
-            localForage.getItem("settings").then(settings => {
+            const shouldLoadState = this.props.shouldLoadState
+            var load = [ localForage.getItem("settings") ]
+            if(shouldLoadState) {
+                load.push( localForage.getItem("saved_state") )
+                load.push( localForage.getItem("saved_machine") )
+            }
+            else {
+                load.push( Promise.resolve(null) )
+                load.push( Promise.resolve(null) )
+            }
+            Promise.all(load).then(([ settings, state, machine ]) => {
                 try {
                     const types = config["emulator_arg_types"]
-                    const args  = _.reduce(config["emulator_args"], (a, v, k) => {
-                        const setting = settings[k]
-                        if(setting)
-                            a[v] = setting
-                        else
-                            a[v] = 0
-                        return a
-                    }, new Array(types.length))
+                    const set_foreground   = settings["foreground"] != "#ffffff" ? 1 : 0
+                    const set_background   = settings["background"] != "#000000" ? 1 : 0
+                    const should_add_state = ( shouldLoadState && state && machine )
+                    const args = [
+                        ( ( set_foreground << 1 ) | set_background ), // set_colors_mask
+                        settings["foreground"], // foreground
+                        settings["background"], // background
+                        settings["lives"], // lives
+                        should_add_state ? cArray( state ) : 0, // saved_state
+                        should_add_state ? cArray( machine ) : 0 // saved_machine
+                    ]
                     Module['canvas'] = canvas
                     Module.ccall('mainf', 'number', types, args)
                 }
@@ -44,15 +56,35 @@ class EmulatorScreen extends React.Component {
         }
     }
     pause() {
-        this.setState({ paused: !this.state.paused, saved: false }, () => {
+        this.setState({
+            paused: !this.state.paused,
+            saved: false,
+            saving: false
+        }, () => {
             // pause/resume game here...
             Module.ccall('toggle_pause', null, null)
         })
     }
     save() {
-        this.setState({ saved: true }, () => {
-            // save state here...
+        const self = this
+        this.setState({ saving: true }, () => {
+            const bytes   = 0x10000
+            const pointer = Module.ccall('get_state', ['number'], null)
+            const state   = jsArray(pointer, bytes)
+            localForage.setItem("saved_state", state).then(() => {
+                const m_pointer = Module.ccall('get_machine', ['number'], null)
+                const machine   = jsArray(m_pointer, 35)
+                return localForage.setItem("saved_machine", machine).then(() => {
+                    return Promise.resolve(machine)
+                })
+            })
+            .then(machine => {
+                freeCArray(machine)
+                self.setState({ saved: true, saving: false })
+            })
+
         })
+
     }
     render() {
         return (
@@ -71,7 +103,11 @@ class EmulatorScreen extends React.Component {
                             <i className="material-icons">save</i>
                         </button>
                     }
-                    <button className={"pause"} onClick={this.pause.bind(this)}>
+                    <button
+                    className={"pause"}
+                    disabled={this.state.saving}
+                    onClick={this.pause.bind(this)}
+                    >
                         {!this.state.paused && <i className="material-icons">pause</i>}
                         {this.state.paused && <i className="material-icons">play_arrow</i>}
                     </button>

@@ -3,12 +3,23 @@
 // convert a javascript typed array into a c array
 // by allocating and copying it into Emcripten's heap
 // and returning a reference for it...
-export const malloc = arr => {
-    const bytes   = arr.length * arr.BYTES_PER_ELEMENT
-    const pointer = Module._malloc( bytes )
-    const c_arr   = new Uint8Array( Module.HEAPU8.buffer, pointer, bytes )
-    c_arr.set( new Uint8Array( arr.buffer ) )
-    return c_arr
+export const cArray = arr => {
+    const bytes     = arr.length * arr.BYTES_PER_ELEMENT
+    const pointer   = Module._malloc( bytes )
+    const heapBytes = new Uint8Array( Module.HEAPU8.buffer, pointer, bytes )
+    heapBytes.set( new Uint8Array( arr.buffer ) )
+    return heapBytes
+}
+
+// convert a c array into a javascript UInt8Array by reading
+// from emscripten at the given pointer with the given bytes
+export const jsArray = (pointer, bytes) => {
+    return new Uint8Array( Module.HEAPU8.buffer, pointer, bytes )
+}
+
+// free a typed array referencing a block of emscripten's heap
+export const freeCArray = pointer => {
+    Module._free(pointer.byteOffset)
 }
 
 // convert a single byte integer color value of format rgb332
@@ -66,4 +77,4 @@ export const generateRGB332Palette = () => {
     '#ffffff' ]
 }
 
-export default { malloc, rgb332, rgb888, generateRGB332Palette }
+export default { cArray, jsArray, freeCArray, rgb332, rgb888, generateRGB332Palette }

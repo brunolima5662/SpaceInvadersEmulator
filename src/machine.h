@@ -78,6 +78,7 @@ typedef struct machine {
 } machine_t;
 
 void initialize_machine(machine_t *, uint8_t);
+void load_machine(machine_t *, uint8_t *, uint8_t *);
 void shutdown_machine(machine_t *);
 int check_machine_instruction(machine_t *);
 void render_screen(machine_t *, SDL_Surface *, uint8_t, uint8_t);

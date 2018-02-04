@@ -22,11 +22,12 @@ class HomeScreen extends React.Component {
         }
         Promise.all([
             localForage.getItem("settings"),
-            localForage.getItem("saved_state")
+            localForage.getItem("saved_state"),
+            localForage.getItem("saved_machine")
         ]).then(this.dataLoaded.bind(this))
     }
-    dataLoaded([ settings, savedState ]) {
-        this.setState({ settings, hasSavedState: savedState ? true : false })
+    dataLoaded([ settings, savedState, savedMachine ]) {
+        this.setState({ settings, hasSavedState: savedState && savedMachine })
     }
     incrementLives(amount) {
         const lives = Math.max( Math.min( this.state["settings"]["lives"] + amount, 6 ), 3 )
@@ -100,7 +101,11 @@ class HomeScreen extends React.Component {
                         <button className={"button"} onClick={() => this.props.onStart()}>
                             {"Start New Game"}
                         </button>
-                        <button className={"button"} disabled={!this.state.hasSavedState}>
+                        <button
+                        className={"button"}
+                        onClick={() => this.props.onStart(true)}>
+                        disabled={!this.state.hasSavedState}
+                        >
                             {"Load Game"}
                         </button>
                     </div>
