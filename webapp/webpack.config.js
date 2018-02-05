@@ -6,6 +6,7 @@ const HtmlWebpackTemplate   = require('html-webpack-template')
 const GoogleFontsPlugin     = require("google-fonts-webpack-plugin")
 const FaviconsWebpackPlugin = require('favicons-webpack-plugin')
 const ExtractTextPlugin     = require('extract-text-webpack-plugin')
+const WorkboxPlugin         = require('workbox-webpack-plugin')
 const UglifyJSPlugin        = require('uglifyjs-webpack-plugin')
 const theme                 = require('./theme.json')
 
@@ -18,10 +19,7 @@ const sass_prepend = [
 ].join('\n')
 
 module.exports = {
-    entry:  {
-        app: './src/main.js',
-        /*sw: './src/sw.js', */
-    },
+    entry:  { app: './src/main.js' },
     output: { filename: '[name].js', path: path.resolve(__dirname, 'build') },
     node:   { fs: "empty" },
     plugins: [
@@ -62,6 +60,12 @@ module.exports = {
         new ExtractTextPlugin("styles.css"),
         new GoogleFontsPlugin({
             fonts: theme["thirdPartyFonts"]["google"].map(f => ({ family: f }))
+        }),
+        new WorkboxPlugin({
+            globDirectory: path.resolve(__dirname, 'build'),
+            globPatterns: ['**/*.{html,js,json,css,wasm,data,eot,svg,ttf,woff,woff2,png,ico}'],
+            clientsClaim: true,
+            skipWaiting: true
         })
     ],
     module: {

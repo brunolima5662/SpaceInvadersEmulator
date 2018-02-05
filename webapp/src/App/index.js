@@ -16,8 +16,19 @@ class App extends React.Component {
             shouldLoadState: false
         }
         const start = new Promise(resolve => {
-            // load wasm and wait for it to fully load before moving on...
-            ScriptJS("bin.js", resolve)
+            // first, attempt to register service worker...
+            if ('serviceWorker' in navigator) {
+                window.addEventListener('load', () => {
+                    navigator.serviceWorker.register('/sw.js').then(resolve).catch(resolve)
+                })
+            }
+            else {
+                resolve()
+            }
+        })
+        .then(() => {
+            // then, load wasm and wait for it to fully load before moving on...
+            return new Promise( resolve =>  ScriptJS("/bin.js", resolve) )
         })
         .then(() => {
             // wait for the wasm runtime to be initiated before moving on...
