@@ -289,6 +289,15 @@ void cpu_run(void * arg) {
                 if(key_result == SI_KEY_RESULT_PAUSE && ev->type == SDL_KEYUP)
                     ctx->paused ^= 0x01;
                 break;
+            case SDL_FINGERDOWN:
+            case SDL_FINGERUP:
+                // handle touch events for phones and tablets
+                // ev->tfinger.x range: 0 - 1 ( left to right )
+                // ev->tfinger.y range: 0 - 1 ( top to bottom )
+                EM_ASM_({
+                    Module.print('Touch -- x: ' + $0 + ', y: ' + $1);
+                }, ev->tfinger.x, ev->tfinger.y);
+                break;
             default: ;
         }
     }
