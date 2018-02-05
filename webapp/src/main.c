@@ -23,6 +23,9 @@ typedef struct cpu_context {
     uint16_t        cycles_per_interrupt;
     uint8_t         foreground;
     uint8_t         background;
+    uint8_t         start_state;
+    uint8_t         leftTouch;
+    uint8_t         rightTouch;
     uint8_t         done;
 } cpu_context_t;
 
@@ -154,8 +157,11 @@ int EMSCRIPTEN_KEEPALIVE mainf(
     context.cycles_per_frame = (uint32_t)((1.0f / VIDEO_HZ) * 1000) * CPU_KHZ;
     context.cycles_per_interrupt = context.cycles_per_frame / 2;
     context.running = 1;
-    context.foreground = (set_colors_mask & 0x2) ? fcolor : FOREGROUND_COLOR;
-    context.background = (set_colors_mask & 0x1) ? bcolor : BACKGROUND_COLOR;
+    context.foreground  = (set_colors_mask & 0x2) ? fcolor : FOREGROUND_COLOR;
+    context.background  = (set_colors_mask & 0x1) ? bcolor : BACKGROUND_COLOR;
+    context.leftTouch   = 0;
+    context.rightTouch  = 0;
+    context.start_state = 0;
     context.done = 0;
 
     // start web-friendly infitite loop through emscripten's api
@@ -272,6 +278,7 @@ void cpu_run(void * arg) {
     while(SDL_PollEvent(ev)) {
         switch(ev->type) {
             case SDL_QUIT: ctx->done = 1; break;
+            /* KEYBOARD CONTROLS */
             case SDL_KEYUP:
             case SDL_KEYDOWN:
                 key_result = handle_input(ctx->machine, ev->type, ev->key.keysym.sym);
@@ -289,14 +296,73 @@ void cpu_run(void * arg) {
                 if(key_result == SI_KEY_RESULT_PAUSE && ev->type == SDL_KEYUP)
                     ctx->paused ^= 0x01;
                 break;
+            /* TOUCH CONTROLS */
             case SDL_FINGERDOWN:
+                if(ctx->start_state < 2) {
+                    // process insert coin and press start
+                    if(ctx->start_state == 0)
+                        handle_input(ctx->machine, SDL_KEYDOWN, SDLK_c);
+                    else
+                        handle_input(ctx->machine, SDL_KEYDOWN, SDLK_1);
+                }
+                else if(ev->tfinger.x < 0.5) { // left touch
+                    if(ctx->rightTouch > 0) {
+                        // stop moving right and shoot
+                        handle_input(ctx->machine, SDL_KEYUP, SDLK_d);
+                        handle_input(ctx->machine, SDL_KEYDOWN, SDLK_SPACE);
+                    }
+                    else {
+                        // move left
+                        handle_input(ctx->machine, SDL_KEYDOWN, SDLK_a);
+                    }
+                    ctx->leftTouch += 1;
+                }
+                else { // right touch
+                    if(ctx->leftTouch > 0) {
+                        // stop moving left and shoot
+                        handle_input(ctx->machine, SDL_KEYUP, SDLK_a);
+                        handle_input(ctx->machine, SDL_KEYDOWN, SDLK_SPACE);
+                    }
+                    else {
+                        // move right
+                        handle_input(ctx->machine, SDL_KEYDOWN, SDLK_d);
+                    }
+                    ctx->rightTouch += 1;
+                }
+                break;
             case SDL_FINGERUP:
-                // handle touch events for phones and tablets
-                // ev->tfinger.x range: 0 - 1 ( left to right )
-                // ev->tfinger.y range: 0 - 1 ( top to bottom )
-                EM_ASM_({
-                    Module.print('Touch -- x: ' + $0 + ', y: ' + $1);
-                }, ev->tfinger.x, ev->tfinger.y);
+                if(ctx->start_state < 2) {
+                    // process insert coin and press start
+                    if(ctx->start_state == 0)
+                        handle_input(ctx->machine, SDL_KEYUP, SDLK_c);
+                    else
+                        handle_input(ctx->machine, SDL_KEYUP, SDLK_1);
+                    ctx->start_state += 1;
+                }
+                else if(ev->tfinger.x < 0.5) { // left touch
+                    if(ctx->rightTouch > 0) {
+                        // stop shooting and move right
+                        handle_input(ctx->machine, SDL_KEYUP, SDLK_SPACE);
+                        handle_input(ctx->machine, SDL_KEYDOWN, SDLK_d);
+                    }
+                    else {
+                        // stop moving left
+                        handle_input(ctx->machine, SDL_KEYUP, SDLK_a);
+                    }
+                    ctx->leftTouch -= 1;
+                }
+                else { // right touch
+                    if(ctx->leftTouch > 0) {
+                        // stop shooting and move left
+                        handle_input(ctx->machine, SDL_KEYUP, SDLK_SPACE);
+                        handle_input(ctx->machine, SDL_KEYDOWN, SDLK_a);
+                    }
+                    else {
+                        // stop moving right
+                        handle_input(ctx->machine, SDL_KEYUP, SDLK_d);
+                    }
+                    ctx->rightTouch -= 1;
+                }
                 break;
             default: ;
         }
