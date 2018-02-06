@@ -23,19 +23,18 @@ module.exports = {
     output: { filename: '[name].js', path: path.resolve(__dirname, 'build') },
     node:   { fs: "empty" },
     plugins: [
-        //new UglifyJSPlugin({ sourceMap: true }),
+        new UglifyJSPlugin({ sourceMap: true }),
         new CleanWebpackPlugin(['build'], {
             exclude: [ "bin.wasm", "bin.data", "bin.js" ]
         }),
         new FaviconsWebpackPlugin({
             logo: path.resolve(__dirname, 'src', 'images', 'icon.png'),
-            persistentCache: true,
             inject: true,
             background: '#FFF',
             title: 'Space Invaders',
             icons: {
                 android: true,
-                appleIcon: true,
+                appleIcon: { background: '#181818' },
                 appleStartup: false,
                 coast: false,
                 favicons: true,
@@ -63,9 +62,22 @@ module.exports = {
         }),
         new WorkboxPlugin({
             globDirectory: path.resolve(__dirname, 'build'),
-            globPatterns: ['**/*.{html,js,json,css,wasm,data,eot,svg,ttf,woff,woff2,png,ico}'],
-            clientsClaim: true,
-            skipWaiting: true
+            globPatterns: ['**/*.{html,js,css,wasm,data,eot,svg,ttf,woff,woff2,png,ico}'],
+            runtimeCaching: [{
+                urlPattern: /https:\/\/fonts.googleapis.com\/(.*)/,
+                cacheName: 'googleapis',
+                handler: 'cacheFirst',
+                options: { cacheableResponse: { statuses: [ 0, 200 ] } }
+            },{
+                urlPattern: /(?:workbox-sw\.prod\.v.*\.js)(?:\.map)?$/,
+                cacheName: 'workbox',
+                handler: 'cacheFirst',
+                options: { cacheableResponse: { statuses: [ 0, 200 ] } }
+            },{
+                urlPattern: /^.*$/,
+                cacheName: 'mainapp',
+                handler: 'cacheFirst'
+            }]
         })
     ],
     module: {

@@ -1,4 +1,5 @@
 import React from 'react'
+import PropTypes from 'prop-types'
 import ScriptJS from 'scriptjs'
 import localForage from 'localforage'
 import HomeScreen from './HomeScreen'
@@ -16,15 +17,13 @@ class App extends React.Component {
             shouldLoadState: false
         }
         const start = new Promise(resolve => {
-            // first, attempt to register service worker...
-            if ('serviceWorker' in navigator) {
-                window.addEventListener('load', () => {
-                    navigator.serviceWorker.register('/sw.js').then(resolve).catch(resolve)
-                })
-            }
-            else {
-                resolve()
-            }
+            // wait for service worker to register before continuing...
+            var checkServiceWorker = setInterval(() => {
+                if(self.props.swLoaded()) {
+                    clearInterval(checkServiceWorker)
+                    resolve()
+                }
+            })
         })
         .then(() => {
             // then, load wasm and wait for it to fully load before moving on...
@@ -81,6 +80,10 @@ class App extends React.Component {
             </div>
         )
     }
+}
+
+App.propTypes = {
+    swLoaded: PropTypes.func.isRequired
 }
 
 module.exports = App
