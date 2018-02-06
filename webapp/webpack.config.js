@@ -7,7 +7,9 @@ const GoogleFontsPlugin     = require("google-fonts-webpack-plugin")
 const FaviconsWebpackPlugin = require('favicons-webpack-plugin')
 const ExtractTextPlugin     = require('extract-text-webpack-plugin')
 const WorkboxPlugin         = require('workbox-webpack-plugin')
+const AppCachePlugin        = require('appcache-webpack-plugin')
 const UglifyJSPlugin        = require('uglifyjs-webpack-plugin')
+const CopyWebpackPlugin     = require('copy-webpack-plugin')
 const theme                 = require('./theme.json')
 
 const sass_prepend = [
@@ -18,6 +20,15 @@ const sass_prepend = [
     '@import "modules";'
 ].join('\n')
 
+const icons = `
+    <link rel="apple-touch-icon" sizes="180x180" href="icons/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="192x192" href="icons/android-chrome-192x192.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="icons/favicon-16x16.png">
+    <link rel="manifest" href="site.webmanifest">
+    <link rel="mask-icon" href="icons/safari-pinned-tab.svg" color="#55d555">
+`
+
 module.exports = {
     entry:  { app: './src/main.js' },
     output: { filename: '[name].js', path: path.resolve(__dirname, 'build') },
@@ -27,13 +38,13 @@ module.exports = {
         new CleanWebpackPlugin(['build'], {
             exclude: [ "bin.wasm", "bin.data", "bin.js" ]
         }),
-        new FaviconsWebpackPlugin({
+        /*new FaviconsWebpackPlugin({
             logo: path.resolve(__dirname, 'src', 'images', 'icon.png'),
             inject: true,
-            background: '#FFF',
             title: 'Space Invaders',
+            persistentCache: true,
             icons: {
-                android: true,
+                android: { background: false },
                 appleIcon: { background: '#181818' },
                 appleStartup: false,
                 coast: false,
@@ -42,27 +53,14 @@ module.exports = {
                 windows: false,
                 yandex: false
             }
-        }),
-        new HtmlWebpackPlugin({
-            title: 'Space Invaders',
-            inject: false,
-            template: HtmlWebpackTemplate,
-            appMountId: 'app',
-            mobile: true,
-            links: [ "https://fonts.googleapis.com/icon?family=Material+Icons" ],
-            meta:  [
-                { "apple-mobile-web-app-capable": "yes" },
-                { "apple-mobile-web-app-status-bar-style": "black" },
-                { "viewport": "user-scalable=no, width=device-width" }
-            ]
-        }),
+        }),*/
         new ExtractTextPlugin("styles.css"),
         new GoogleFontsPlugin({
             fonts: theme["thirdPartyFonts"]["google"].map(f => ({ family: f }))
         }),
         new WorkboxPlugin({
             globDirectory: path.resolve(__dirname, 'build'),
-            globPatterns: ['**/*.{html,js,css,wasm,data,eot,svg,ttf,woff,woff2,png,ico}'],
+            globPatterns: ['**/*.{html,js,css,xml,wasm,data,eot,svg,ttf,woff,woff2,png,ico,webmanifest}'],
             runtimeCaching: [{
                 urlPattern: /https:\/\/fonts.googleapis.com\/(.*)/,
                 cacheName: 'googleapis',
@@ -78,7 +76,43 @@ module.exports = {
                 cacheName: 'mainapp',
                 handler: 'cacheFirst'
             }]
+        }),
+        new CopyWebpackPlugin([{
+            from: 'src/images/icons/*',
+            to: 'icons/',
+            ignore: [ '*.xml', '*.webmanifest', '*.ico' ],
+            flatten: true
+        },{
+            from: 'src/images/icons/*',
+            to: './',
+            ignore: [ '*.svg', '*.png' ],
+            flatten: true
+        }]),
+        new AppCachePlugin({
+            output: 'manifest.appcache',
+            cache: ['bin.js', 'bin.wasm', 'bin.data', 'index.html' ],
+            exclude: [ 'theme.json', /^src.*$/, /\.appcache/ ]
+        }),
+        new HtmlWebpackPlugin({
+            title: 'Space Invaders',
+            inject: false,
+            template: HtmlWebpackTemplate,
+            appMountId: 'app',
+            mobile: true,
+            persistentCache: true,
+            links: [ "https://fonts.googleapis.com/icon?family=Material+Icons" ],
+            meta:  [
+                { "apple-mobile-web-app-title": "Space Invaders" },
+                { "application-name": "Space Invaders" },
+                { "apple-mobile-web-app-capable": "yes" },
+                { "apple-mobile-web-app-status-bar-style": "black" },
+                { "viewport": "user-scalable=no, width=device-width" },
+                { "msapplication-TileColor": "#55d555" },
+                { "theme-color": "#55d555" }
+            ],
+            headHtmlSnippet: icons
         })
+
     ],
     module: {
         rules: [
@@ -97,6 +131,7 @@ module.exports = {
             },
             {
                 test: /\.(jpe?g|png|gif|svg|eot|woff|ttf|svg|woff2)$/,
+                exclude: /(src\/images)/,
                 use: {
                     loader: 'url-loader',
                     options: { name: '[name].[ext]' }

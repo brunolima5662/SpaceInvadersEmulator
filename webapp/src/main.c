@@ -19,6 +19,7 @@ typedef struct cpu_context {
     uint8_t         volume;
     uint8_t         interrupt;
     uint32_t        cycles;
+    uint32_t        frame;
     uint32_t        cycles_per_frame;
     uint16_t        cycles_per_interrupt;
     uint8_t         foreground;
@@ -26,6 +27,7 @@ typedef struct cpu_context {
     uint8_t         start_state;
     uint8_t         leftTouch;
     uint8_t         rightTouch;
+    uint8_t         shooting;
     uint8_t         done;
 } cpu_context_t;
 
@@ -154,6 +156,7 @@ int EMSCRIPTEN_KEEPALIVE mainf(
     context.volume = 0;
     context.interrupt = 1;
     context.cycles = 0;
+    context.frame = 0;
     context.cycles_per_frame = (uint32_t)((1.0f / VIDEO_HZ) * 1000) * CPU_KHZ;
     context.cycles_per_interrupt = context.cycles_per_frame / 2;
     context.running = 1;
@@ -161,6 +164,7 @@ int EMSCRIPTEN_KEEPALIVE mainf(
     context.background  = (set_colors_mask & 0x1) ? bcolor : BACKGROUND_COLOR;
     context.leftTouch   = 0;
     context.rightTouch  = 0;
+    context.shooting    = 0;
     context.start_state = 0;
     context.done = 0;
 
@@ -234,9 +238,9 @@ void cpu_run(void * arg) {
         SDL_RenderClear(ctx->renderer);
         SDL_RenderCopy(ctx->renderer, ctx->texture, NULL, NULL);
         SDL_RenderPresent(ctx->renderer);
-    }
 
-    if(!ctx->paused) {
+        // update frame counter...
+        ctx->frame += 1;
 
         // perform a frame's worth of cpu operations...
         ctx->cycles = 0;
@@ -265,10 +269,24 @@ void cpu_run(void * arg) {
             if(ctx->done)
                 break;
         }
+
         // process second interrupt
         if(ctx->machine->accept_interrupt == 1) {
             interrupt_cpu(ctx->machine, ctx->interrupt);
             ctx->interrupt ^= 0x03; // toggle between interrupts 1 and 2
+        }
+
+        // if a shoot trigger was set in the last frame, send
+        // the keyup trigger for it...
+        if(ctx->shooting) {
+            ctx->shooting = 0;
+            handle_input(ctx->machine, SDL_KEYUP, SDLK_SPACE);
+        }
+        else if(ctx->frame % 20 == 0 && ctx->leftTouch > 0 && ctx->rightTouch > 0) {
+            // every 20 frames, check if both left and right touches are
+            // triggered, and if so, trigger the shoot key...
+            ctx->shooting = 1;
+            handle_input(ctx->machine, SDL_KEYDOWN, SDLK_SPACE);
         }
     }
 
@@ -309,7 +327,6 @@ void cpu_run(void * arg) {
                     if(ctx->rightTouch > 0) {
                         // stop moving right and shoot
                         handle_input(ctx->machine, SDL_KEYUP, SDLK_d);
-                        handle_input(ctx->machine, SDL_KEYDOWN, SDLK_SPACE);
                     }
                     else {
                         // move left
@@ -321,7 +338,6 @@ void cpu_run(void * arg) {
                     if(ctx->leftTouch > 0) {
                         // stop moving left and shoot
                         handle_input(ctx->machine, SDL_KEYUP, SDLK_a);
-                        handle_input(ctx->machine, SDL_KEYDOWN, SDLK_SPACE);
                     }
                     else {
                         // move right
@@ -342,7 +358,6 @@ void cpu_run(void * arg) {
                 else if(ev->tfinger.x < 0.5) { // left touch
                     if(ctx->rightTouch > 0) {
                         // stop shooting and move right
-                        handle_input(ctx->machine, SDL_KEYUP, SDLK_SPACE);
                         handle_input(ctx->machine, SDL_KEYDOWN, SDLK_d);
                     }
                     else {
@@ -354,7 +369,6 @@ void cpu_run(void * arg) {
                 else { // right touch
                     if(ctx->leftTouch > 0) {
                         // stop shooting and move left
-                        handle_input(ctx->machine, SDL_KEYUP, SDLK_SPACE);
                         handle_input(ctx->machine, SDL_KEYDOWN, SDLK_a);
                     }
                     else {
