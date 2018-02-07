@@ -9,12 +9,17 @@ import App from './App'
 // and set a flag when done, even if it failed...
 var swLoaded = false
 window.addEventListener('load', () => {
-    navigator.serviceWorker.register('/sw.js').then(resolve => {
+    if('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('/sw.js').then(resolve => {
+            swLoaded = true
+        }).catch(error => {
+            console.error(error)
+            swLoaded = true
+        })
+    }
+    else {
         swLoaded = true
-    }).catch(error => {
-        console.error(error)
-        swLoaded = true
-    })
+    }
 })
 
 // then, render app...

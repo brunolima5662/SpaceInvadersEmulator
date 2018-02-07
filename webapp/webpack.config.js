@@ -102,13 +102,13 @@ module.exports = {
             persistentCache: true,
             links: [ "https://fonts.googleapis.com/icon?family=Material+Icons" ],
             meta:  [
-                { "apple-mobile-web-app-title": "Space Invaders" },
-                { "application-name": "Space Invaders" },
-                { "apple-mobile-web-app-capable": "yes" },
-                { "apple-mobile-web-app-status-bar-style": "black" },
-                { "viewport": "user-scalable=no, width=device-width" },
-                { "msapplication-TileColor": "#55d555" },
-                { "theme-color": "#55d555" }
+                { name: "apple-mobile-web-app-title", content: "Space Invaders" },
+                { name: "application-name", content:  "Space Invaders" },
+                { name: "apple-mobile-web-app-capable", content:  "yes" },
+                { name: "apple-mobile-web-app-status-bar-style", content:  "black" },
+                { name: "viewport", content:  "user-scalable=no, width=device-width" },
+                { name: "msapplication-TileColor", content:  "#55d555" },
+                { name: "theme-color", content:  "#55d555" }
             ],
             headHtmlSnippet: icons
         })
