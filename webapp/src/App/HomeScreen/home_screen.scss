@@ -70,11 +70,14 @@
                 @include button($type: "box", $color: $color-primary-0);
                 @include phones { width: 100%; }
                 @include nonPhones { @include size(45%, 100%); }
+                //border: 2px solid white;
+                border-radius: 10px;
                 padding: 1ex;
                 line-height: 2.5ex;
                 &:disabled {
                     background-color: #BCBCBC;
                     cursor: default;
+                    border: 0px solid white;
                 }
             }
         }
@@ -93,6 +96,7 @@
             justify-content: space-between;
             .color-select {
                 background-color: $color-primary-0;
+                //border: 2px solid white;
                 @include phones { font-size: 12px; }
                 @include nonPhones { font-size: 20px; }
                 @include size(45%, 100%);
@@ -101,11 +105,17 @@
                 display: flex;
                 justify-content: space-around;
                 flex-direction: column;
+                border-radius: 10px;
 
                 .color-value {
                     height: 30px;
                     cursor: pointer;
                     @include margin(null 8%);
+                    border-radius: 10px;
+                    box-shadow: 0px 2px 0px rgba(0, 0, 0, 0.15);
+                    &:hover {
+                        box-shadow: none;
+                    }
                 }
             }
 
@@ -118,17 +128,20 @@
             background-color: $color-primary-0;
             display: grid;
             grid-template-rows: 5% auto 5%;
+            grid-template-columns: 4% 24% auto 5% 40% 5% 5%;
+            border-radius: 10px;
+            //border: 2px solid white;
             @include phones {
-                grid-template-columns: 8% 24% auto 5% 1% 40% 1% 5% 5%;
+
                 font-size: 14px;
             }
             @include nonPhones {
-                font-size: 16px;
+                font-size: 20px;
             }
             .label {
                 grid-row: 2 / 3;
                 grid-column: 2 / 3;
-                @include gridAlign(center);
+                @include gridAlign(left, center);
             }
             .decrement {
                 @include button($color: white);
@@ -139,12 +152,12 @@
             .increment {
                 @include button($color: white);
                 grid-row: 2 / 3;
-                grid-column: 8 / 9;
+                grid-column: 6 / 7;
                 @include gridAlign(center);
             }
             .hearts {
                 grid-row: 2 / 3;
-                grid-column: 6 / 7;
+                grid-column: 5 / 6;
                 @include gridAlign(center);
                 display: flex;
                 justify-content: space-around;
