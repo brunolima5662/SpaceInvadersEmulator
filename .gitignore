@@ -52,4 +52,13 @@ Mkfile.old
 dkms.conf
 
 # builds
-build/space-invaders
+build/**/*
+webapp/build/**/*
+!build/.gitignore
+!webapp/build/.gitignore
+
+# node-modules for webapp
+webapp/node_modules/**/*
+
+# assets symbolic link for webapp
+webapp/assets/**/*

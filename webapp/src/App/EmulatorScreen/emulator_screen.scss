@@ -1,0 +1,62 @@
+
+.emulator-screen {
+    @include position(absolute, 0 0 0 0);
+    background-color: #000;
+    margin: 0px;
+
+    canvas {
+        @include position(absolute, 0 0 0 0);
+        margin: auto;
+        z-index: 1;
+        max-width: $render-width * $render-max-scale;
+        max-height: $render-height * $render-max-scale;
+        @media screen and (orientation: landscape) {
+            height: 100%;
+        }
+        @media screen and (orientation: portrait) {
+            width: 100%;
+        }
+    }
+
+    .snackbar {
+        background-color: $color-primary-0;
+        font-family: $font-family;
+        font-weight: normal;
+        text-shadow: 1px 1px 1px rgba(0, 0, 0, 0.2);
+    }
+
+    .pause {
+
+        @include round-button();
+        @include position(absolute, 15px 15px null null);
+        box-shadow: 0px 2px 0px rgba(0, 0, 0, 0.15);
+        z-index: 3;
+
+        &:disabled {
+            background-color: #E8E8E8;
+            cursor: default;
+        }
+    }
+    .save {
+        @include position(absolute, 15px 15px null null);
+        @include round-button();
+        box-shadow: 0px 2px 0px rgba(0, 0, 0, 0.25);
+        z-index: 2;
+        transition: right 100ms ease-out;
+
+        &.entering, &.exited {
+            right: 15px;
+        }
+        &.exiting, &.entered {
+            right: 70px;
+        }
+    }
+    .quit {
+        @include position(absolute, 15px null null 15px);
+        @include round-button();
+        box-shadow: 0px 2px 0px rgba(0, 0, 0, 0.15);
+        z-index: 2;
+    }
+
+
+}

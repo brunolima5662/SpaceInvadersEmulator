@@ -1,0 +1,27 @@
+
+
+$snackbar-id: unique-id();
+$snackbar-padding: 10px;
+$snackbar-font-size: 14px;
+.#{$snackbar-id} {
+    @include size(calc(75% - #{$snackbar-padding * 3}), ($snackbar-font-size * 1.5));
+    @include position(fixed, null 0 0 0);
+    @include padding($snackbar-padding ($snackbar-padding * 1.5));
+    margin: auto;
+    background-color: black;
+    color: white;
+    font-family: Helvetica, sans-serif;
+    text-align: left;
+    font-size: 14px;
+    font-weight: bold;
+    z-index: 10;
+    line-height: ($snackbar-font-size * 1.75);
+
+    margin-bottom: #{0 - (2 * $snackbar-padding) - ($snackbar-font-size * 1.5)};
+    transition: margin-bottom 300ms ease-out;
+}
+
+:export {
+    id: $snackbar-id;
+    height: #{(2 * $snackbar-padding) + ($snackbar-font-size * 1.5)};
+}

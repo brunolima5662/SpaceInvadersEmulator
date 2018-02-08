@@ -3,9 +3,17 @@
 
 #include <stdint.h>
 #include <time.h>
+#include <stdio.h>
+#include <string.h>
+#include <SDL2/SDL.h>
+
+#ifndef __EMSCRIPTEN__
 #include <SDL.h>
 #include <SDL_mixer.h>
 #include "media.h"
+#else
+#include <SDL/SDL_mixer.h>
+#endif
 
 #define MEMORY_SIZE 0x10000
 #define ROM_START 0x0000
@@ -13,8 +21,8 @@
 #define VIDEO_RAM_START 0x2400
 #define RAM_MIRROR_START 0x4000
 
-#define BACKGROUND_COLOR 0x1f // in RGB332 format
-#define FOREGROUND_COLOR 0xc1 // in RGB332 format
+#define BACKGROUND_COLOR 0x00 // 0x1f // in RGB332 format
+#define FOREGROUND_COLOR 0xff // 0xc1 // in RGB332 format
 #define VIDEO_SCALE 3
 #define VIDEO_X 256 // in pixels
 #define VIDEO_Y 224 // in pixels
@@ -69,10 +77,11 @@ typedef struct machine {
     int32_t     channels[SOUND_SAMPLES];
 } machine_t;
 
-void initialize_machine(machine_t *);
+void initialize_machine(machine_t *, uint8_t);
+void load_machine(machine_t *, uint8_t *, uint8_t *);
 void shutdown_machine(machine_t *);
 int check_machine_instruction(machine_t *);
-void render_screen(machine_t *, SDL_Surface *);
+void render_screen(machine_t *, SDL_Surface *, uint8_t, uint8_t);
 void sleep_microseconds(uint64_t);
 void interrupt_cpu(machine_t *, uint8_t);
 SI_KEY_RESULT handle_input(machine_t *, uint32_t, uint32_t);

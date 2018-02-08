@@ -103,7 +103,7 @@ int main(int argc, char * argv[]) {
 
         if(!paused) {
             // render next frame
-            render_screen(&machine, screen);
+            render_screen(&machine, screen, FOREGROUND_COLOR, BACKGROUND_COLOR);
             SDL_UpdateTexture(texture, NULL, screen->pixels, screen->pitch);
             SDL_RenderClear(renderer);
             SDL_RenderCopy(renderer, texture, NULL, NULL);
@@ -127,7 +127,7 @@ int main(int argc, char * argv[]) {
             cpu_time_start = cpu_timer.tv_nsec;
 
         if(!paused) {
-            
+
             // perform a frame's worth of cpu operations...
             cycles = 0;
             while(cycles < cycles_per_frame) {
