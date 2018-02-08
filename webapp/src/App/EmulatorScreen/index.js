@@ -1,6 +1,7 @@
 import React from 'react'
 import PropTypes from 'prop-types'
 import localForage from 'localforage'
+import Transition from 'react-transition-group/Transition'
 import Snackbar from '../Snackbar'
 import _ from 'lodash'
 import { cArray } from '../Modules/helpers'
@@ -103,11 +104,13 @@ class EmulatorScreen extends React.Component {
                 <button className={"quit"} onClick={this.props.onQuit}>
                     <i className="material-icons">home</i>
                 </button>
-                {(this.state.paused && ! this.state.saved) &&
-                    <button className={"save"} onClick={this.save.bind(this)}>
-                        <i className="material-icons">save</i>
-                    </button>
-                }
+                <Transition in={(this.state.paused && !this.state.saved)} timeout={100}>
+                    {state => (
+                        <button className={`save ${state}`} onClick={this.save.bind(this)}>
+                            <i className="material-icons">save</i>
+                        </button>
+                    )}
+                </Transition>
                 <button
                 className={"pause"}
                 disabled={this.state.saving}

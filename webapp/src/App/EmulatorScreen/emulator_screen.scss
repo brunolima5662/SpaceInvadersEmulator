@@ -29,7 +29,6 @@
 
         @include round-button();
         @include position(absolute, 15px 15px null null);
-        opacity: 0.97;
         box-shadow: 0px 2px 0px rgba(0, 0, 0, 0.15);
         z-index: 3;
 
@@ -39,17 +38,23 @@
         }
     }
     .save {
-        @include position(absolute, 15px 70px null null);
+        @include position(absolute, 15px 15px null null);
         @include round-button();
         box-shadow: 0px 2px 0px rgba(0, 0, 0, 0.25);
-        opacity: 0.97;
         z-index: 2;
+        transition: right 100ms ease-out;
+
+        &.entering, &.exited {
+            right: 15px;
+        }
+        &.exiting, &.entered {
+            right: 70px;
+        }
     }
     .quit {
         @include position(absolute, 15px null null 15px);
         @include round-button();
         box-shadow: 0px 2px 0px rgba(0, 0, 0, 0.15);
-        opacity: 0.97;
         z-index: 2;
     }
 
