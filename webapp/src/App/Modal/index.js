@@ -42,7 +42,7 @@ const styles = {
     }
 }
 
-const Modal = ({open, onClose, style, title, actions, children}) => (
+const Modal = ({ open, onClose, style, title, actions, children }) => (
     <div style={{ ...styles["overlay"], display: open ? 'flex' : 'none' }} onClick={onClose}>
         <div style={{ ...styles["modal"], style }} onClick={ev => ev.stopPropagation()}>
             {title && ( <div style={styles["title"]}> {title} </div> )}

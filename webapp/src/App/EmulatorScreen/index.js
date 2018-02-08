@@ -1,6 +1,7 @@
 import React from 'react'
 import PropTypes from 'prop-types'
 import localForage from 'localforage'
+import Snackbar from '../Snackbar'
 import _ from 'lodash'
 import { cArray } from '../Modules/helpers'
 import './emulator_screen.scss'
@@ -11,7 +12,7 @@ const config = require('../config.json')
 class EmulatorScreen extends React.Component {
     constructor(props) {
         super(props)
-        this.state = { paused: false, saved: false, saving: false }
+        this.state = { paused: false, saved: false, saving: false, savedSnackbar: false }
     }
     onCanvasLoaded(canvas) {
         if(!this.loaded) {
@@ -79,8 +80,13 @@ class EmulatorScreen extends React.Component {
                 })
             })
             .then(machine => {
-                freeCArray(machine)
-                self.setState({ saved: true, saving: false })
+                return new Promise(resolve => {
+                    freeCArray(machine)
+                    self.setState({ saved: true, savedSnackbar: true, saving: false }, resolve)
+                })
+            })
+            .then(() => {
+                setTimeout(() => { self.setState({ savedSnackbar: false }) }, 2500)
             })
 
         })
@@ -89,29 +95,30 @@ class EmulatorScreen extends React.Component {
     render() {
         return (
             <div className={"emulator-screen"}>
-                <div className={"screen"}>
-                    <canvas
-                        ref={this.onCanvasLoaded.bind(this)}
-                        height={theme["render-height"]}
-                        width={theme["render-width"]}>
-                    </canvas>
-                    <button className={"quit"} onClick={this.props.onQuit}>
-                        <i className="material-icons">home</i>
+                <canvas
+                    ref={this.onCanvasLoaded.bind(this)}
+                    height={theme["render-height"]}
+                    width={theme["render-width"]}>
+                </canvas>
+                <button className={"quit"} onClick={this.props.onQuit}>
+                    <i className="material-icons">home</i>
+                </button>
+                {(this.state.paused && ! this.state.saved) &&
+                    <button className={"save"} onClick={this.save.bind(this)}>
+                        <i className="material-icons">save</i>
                     </button>
-                    {(this.state.paused && ! this.state.saved) &&
-                        <button className={"save"} onClick={this.save.bind(this)}>
-                            <i className="material-icons">save</i>
-                        </button>
-                    }
-                    <button
-                    className={"pause"}
-                    disabled={this.state.saving}
-                    onClick={this.pause.bind(this)}
-                    >
-                        {!this.state.paused && <i className="material-icons">pause</i>}
-                        {this.state.paused && <i className="material-icons">play_arrow</i>}
-                    </button>
-                </div>
+                }
+                <button
+                className={"pause"}
+                disabled={this.state.saving}
+                onClick={this.pause.bind(this)}
+                >
+                    {!this.state.paused && <i className="material-icons">pause</i>}
+                    {this.state.paused && <i className="material-icons">play_arrow</i>}
+                </button>
+                <Snackbar className={"snackbar"} display={this.state.savedSnackbar}>
+                    {"Game Saved!"}
+                </Snackbar>
             </div>
         )
     }

@@ -60,7 +60,7 @@ int EMSCRIPTEN_KEEPALIVE mainf(
     SDL_Renderer * renderer  = NULL;
     SDL_Surface  * screen    = NULL, * r_screen = NULL;
     SDL_Texture  * texture   = NULL;
-    SDL_Rect     screen_rect = { 0, 0, VIDEO_Y * VIDEO_SCALE, VIDEO_X * VIDEO_SCALE };
+    SDL_Rect     screen_rect = { 0, 0, VIDEO_Y * 4, VIDEO_X * 4 };
 
     // first, check that there are no emulation loop running.
     // if there are, cancel and close them first

@@ -70,7 +70,7 @@
                 @include button($type: "box", $color: $color-primary-0);
                 @include phones { width: 100%; }
                 @include nonPhones { @include size(45%, 100%); }
-                //border: 2px solid white;
+
                 border-radius: 10px;
                 padding: 1ex;
                 line-height: 2.5ex;
@@ -96,7 +96,7 @@
             justify-content: space-between;
             .color-select {
                 background-color: $color-primary-0;
-                //border: 2px solid white;
+
                 @include phones { font-size: 12px; }
                 @include nonPhones { font-size: 20px; }
                 @include size(45%, 100%);
@@ -130,7 +130,7 @@
             grid-template-rows: 5% auto 5%;
             grid-template-columns: 4% 24% auto 5% 40% 5% 5%;
             border-radius: 10px;
-            //border: 2px solid white;
+
             @include phones {
 
                 font-size: 14px;

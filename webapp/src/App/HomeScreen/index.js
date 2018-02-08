@@ -18,7 +18,7 @@ class HomeScreen extends React.Component {
             selectingForeground: false,
             selectingBackground: false,
             tempForeground: "#FFFFFF",
-            tempBackground: "#000000",
+            tempBackground: "#000000"
         }
         Promise.all([
             localForage.getItem("settings"),
@@ -27,6 +27,7 @@ class HomeScreen extends React.Component {
         ]).then(this.dataLoaded.bind(this))
     }
     dataLoaded([ settings, savedState, savedMachine ]) {
+        const self = this;
         this.setState({ settings, hasSavedState: savedState && savedMachine })
     }
     incrementLives(amount) {
