@@ -8,7 +8,7 @@
     display: grid;
     @include phones {
         grid-template-columns: 5% auto 5%;
-        grid-template-rows: 15px 26% auto 64% 30px;
+        grid-template-rows: 25px 26% auto 64% 20px;
     }
     @include tablets {
         grid-template-columns: 7% auto 7%;
@@ -128,14 +128,15 @@
             background-color: $color-primary-0;
             display: grid;
             grid-template-rows: 5% auto 5%;
-            grid-template-columns: 4% 24% auto 5% 40% 5% 5%;
+
             border-radius: 10px;
 
             @include phones {
-
+                grid-template-columns: 4% 15% auto 10% 40% 10% 5%;
                 font-size: 14px;
             }
             @include nonPhones {
+                grid-template-columns: 4% 24% auto 5% 40% 5% 5%;
                 font-size: 20px;
             }
             .label {
