@@ -4,9 +4,8 @@ import localForage from 'localforage'
 import Transition from 'react-transition-group/Transition'
 import Snackbar from '../Snackbar'
 import _ from 'lodash'
-import { cArray } from '../Modules/helpers'
+import { jsArray, cArray, freeCArray, rgb332 } from '../Modules/helpers'
 import './emulator_screen.scss'
-import { jsArray, freeCArray } from '../Modules/helpers'
 const theme  = require('../../../theme.json')
 const config = require('../config.json')
 
@@ -36,12 +35,13 @@ class EmulatorScreen extends React.Component {
                     const should_add_state = ( shouldLoadState && state && machine )
                     const args = [
                         ( ( set_foreground << 1 ) | set_background ), // set_colors_mask
-                        settings["foreground"], // foreground
-                        settings["background"], // background
+                        rgb332( settings["foreground"] ), // foreground
+                        rgb332( settings["background"] ), // background
                         settings["lives"], // lives
                         should_add_state ? cArray( state ) : 0, // saved_state
                         should_add_state ? cArray( machine ) : 0 // saved_machine
                     ]
+                    console.log(args)
                     Module['canvas'] = canvas
                     Module.ccall('mainf', 'number', types, args)
                 }
@@ -69,7 +69,7 @@ class EmulatorScreen extends React.Component {
     }
     save() {
         const self = this
-        this.setState({ saving: true }, () => {
+        this.setState({ saved: true, saving: true }, () => {
             const bytes   = 0x10000
             const pointer = Module.ccall('get_state', ['number'], null)
             const state   = jsArray(pointer, bytes)
@@ -83,7 +83,7 @@ class EmulatorScreen extends React.Component {
             .then(machine => {
                 return new Promise(resolve => {
                     freeCArray(machine)
-                    self.setState({ saved: true, savedSnackbar: true, saving: false }, resolve)
+                    self.setState({ savedSnackbar: true, saving: false }, resolve)
                 })
             })
             .then(() => {

@@ -10,7 +10,6 @@ const Snackbar = ({ display, style, className, children }) => {
         entered:  { marginBottom: '0px', transitionTimingFunction: 'ease-in' },
         exiting:  { marginBottom: '0px', transitionTimingFunction: 'ease-in' }
     }
-    console.log(states)
     return (
         <Transition in={display} timeout={300}>
             {state => (

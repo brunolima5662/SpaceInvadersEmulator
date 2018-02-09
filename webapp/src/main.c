@@ -282,8 +282,8 @@ void cpu_run(void * arg) {
             ctx->shooting = 0;
             handle_input(ctx->machine, SDL_KEYUP, SDLK_SPACE);
         }
-        else if(ctx->frame % 20 == 0 && ctx->leftTouch > 0 && ctx->rightTouch > 0) {
-            // every 20 frames, check if both left and right touches are
+        else if(ctx->frame % 10 == 0 && ctx->leftTouch > 0 && ctx->rightTouch > 0) {
+            // every 10 frames, check if both left and right touches are
             // triggered, and if so, trigger the shoot key...
             ctx->shooting = 1;
             handle_input(ctx->machine, SDL_KEYDOWN, SDLK_SPACE);
@@ -327,6 +327,8 @@ void cpu_run(void * arg) {
                     if(ctx->rightTouch > 0) {
                         // stop moving right and shoot
                         handle_input(ctx->machine, SDL_KEYUP, SDLK_d);
+                        handle_input(ctx->machine, SDL_KEYDOWN, SDLK_SPACE);
+                        ctx->shooting = 1;
                     }
                     else {
                         // move left
@@ -338,6 +340,8 @@ void cpu_run(void * arg) {
                     if(ctx->leftTouch > 0) {
                         // stop moving left and shoot
                         handle_input(ctx->machine, SDL_KEYUP, SDLK_a);
+                        handle_input(ctx->machine, SDL_KEYDOWN, SDLK_SPACE);
+                        ctx->shooting = 1;
                     }
                     else {
                         // move right

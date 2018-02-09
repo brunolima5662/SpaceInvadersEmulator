@@ -44,6 +44,7 @@
         &:hover  { color: darken($color, 5%); }
         &:active { color: darken($color, 15%); }
     }
+    &:focus  { outline: none !important; }
     @include padding(0.5ex 1ex);
     border-width: 0px;
     outline: none;
@@ -63,4 +64,5 @@
     font-size: 27px;
     color: white;
     cursor: pointer;
+    &:focus  { outline: none !important; }
 }
