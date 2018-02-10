@@ -21,6 +21,37 @@ export const freeCArray = pointer => {
     Module._free(pointer.byteOffset)
 }
 
+// return an array [r, g, b] from a hex color value
+export const rgbFromHex = hex => {
+    const raw_hex = hex.replace(/\W/ig, '')
+    return [
+        parseInt( raw_hex.substr(0, 2), 16 ), // red
+        parseInt( raw_hex.substr(2, 2), 16 ), // green
+        parseInt( raw_hex.substr(4, 2), 16 ), // blue
+    ]
+}
+
+// return an array in the format RGB332 [r, g, b] from a hex color value
+export const rgb332FromHex = hex => {
+    const raw_hex = hex.replace(/\W/ig, '')
+    return [
+        parseInt( Math.round( parseInt( raw_hex.substr(0, 2), 16 ) / 36.0 ) ), // red
+        parseInt( Math.round( parseInt( raw_hex.substr(2, 2), 16 ) / 36.0 ) ), // green
+        parseInt( Math.round( parseInt( raw_hex.substr(4, 2), 16 ) / 85.0 ) ), // blue
+    ]
+}
+
+// return either black or white, whichever has a better
+// contrast with the given color
+export const contrastColor = hex => {
+    const rgb = rgbFromHex( hex ).map( x => x / 255.0 )
+    const r = rgb[0] < 0.03928 ? ( rgb[0] / 12.92 ) : Math.pow( ( ( rgb[0] + 0.055 ) / 1.055 ), 2.4 )
+    const g = rgb[1] < 0.03928 ? ( rgb[1] / 12.92 ) : Math.pow( ( ( rgb[1] + 0.055 ) / 1.055 ), 2.4 )
+    const b = rgb[2] < 0.03928 ? ( rgb[2] / 12.92 ) : Math.pow( ( ( rgb[2] + 0.055 ) / 1.055 ), 2.4 )
+    const l = 0.2126 * r + 0.7152 * g + 0.0722 * b
+    return l > 0.179 ? '#000000' : '#ffffff'
+}
+
 // convert a single byte integer color value of format rgb332
 // to a hex string representing the given color in the format rgb888
 export const rgb888 = color => {
@@ -38,12 +69,7 @@ export const rgb888 = color => {
 // convert hex color value of format rgb888 to a single byte color
 // value representing the given hex value in the format rgb332
 export const rgb332 = hex => {
-    const raw_hex = hex.replace(/\W/ig, '')
-    const rgb = [
-        parseInt( Math.round( parseInt( raw_hex.substr(0, 2), 16 ) / 36.0 ) ), // red
-        parseInt( Math.round( parseInt( raw_hex.substr(2, 2), 16 ) / 36.0 ) ), // green
-        parseInt( Math.round( parseInt( raw_hex.substr(4, 2), 16 ) / 85.0 ) ), // blue
-    ]
+    const rgb = rgb332FromHex( hex )
     return ( ( rgb[0] << 5 ) | ( rgb[1] << 2 ) | rgb[2] )
 }
 
@@ -76,4 +102,14 @@ export const generateRGB332Palette = () => {
     '#ffffff' ]
 }
 
-export default { cArray, jsArray, freeCArray, rgb332, rgb888, generateRGB332Palette }
+export default {
+    cArray,
+    jsArray,
+    freeCArray,
+    rgb332,
+    rgb888,
+    generateRGB332Palette,
+    rgbFromHex,
+    rgb332FromHex,
+    contrastColor
+}

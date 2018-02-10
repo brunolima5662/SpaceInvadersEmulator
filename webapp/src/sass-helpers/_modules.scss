@@ -44,7 +44,10 @@
         &:hover  { color: darken($color, 5%); }
         &:active { color: darken($color, 15%); }
     }
-    &:focus  { outline: none !important; }
+    &:focus {
+        outline: none !important;
+        -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
+    }
     @include padding(0.5ex 1ex);
     border-width: 0px;
     outline: none;

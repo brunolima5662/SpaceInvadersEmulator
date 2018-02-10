@@ -4,7 +4,6 @@ const CleanWebpackPlugin    = require('clean-webpack-plugin')
 const HtmlWebpackPlugin     = require('html-webpack-plugin')
 const HtmlWebpackTemplate   = require('html-webpack-template')
 const GoogleFontsPlugin     = require("google-fonts-webpack-plugin")
-const FaviconsWebpackPlugin = require('favicons-webpack-plugin')
 const ExtractTextPlugin     = require('extract-text-webpack-plugin')
 const WorkboxPlugin         = require('workbox-webpack-plugin')
 const AppCachePlugin        = require('appcache-webpack-plugin')
@@ -38,22 +37,6 @@ module.exports = {
         new CleanWebpackPlugin(['build'], {
             exclude: [ "bin.wasm", "bin.data", "bin.js" ]
         }),
-        /*new FaviconsWebpackPlugin({
-            logo: path.resolve(__dirname, 'src', 'images', 'icon.png'),
-            inject: true,
-            title: 'Space Invaders',
-            persistentCache: true,
-            icons: {
-                android: { background: false },
-                appleIcon: { background: '#181818' },
-                appleStartup: false,
-                coast: false,
-                favicons: true,
-                firefox: false,
-                windows: false,
-                yandex: false
-            }
-        }),*/
         new ExtractTextPlugin("styles.css"),
         new GoogleFontsPlugin({
             fonts: theme["thirdPartyFonts"]["google"].map(f => ({ family: f }))

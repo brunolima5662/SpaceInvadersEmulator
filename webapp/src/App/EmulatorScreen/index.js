@@ -4,7 +4,7 @@ import localForage from 'localforage'
 import Transition from 'react-transition-group/Transition'
 import Snackbar from '../Snackbar'
 import _ from 'lodash'
-import { jsArray, cArray, freeCArray, rgb332 } from '../Modules/helpers'
+import { jsArray, cArray, freeCArray, rgb332, contrastColor } from '../Modules/helpers'
 import './emulator_screen.scss'
 const theme  = require('../../../theme.json')
 const config = require('../config.json')
@@ -17,6 +17,7 @@ class EmulatorScreen extends React.Component {
     onCanvasLoaded(canvas) {
         if(!this.loaded) {
             this.loaded = true
+            const self  = this
             const shouldLoadState = this.props.shouldLoadState
             var load = [ localForage.getItem("settings") ]
             if(shouldLoadState) {
@@ -41,9 +42,17 @@ class EmulatorScreen extends React.Component {
                         should_add_state ? cArray( state ) : 0, // saved_state
                         should_add_state ? cArray( machine ) : 0 // saved_machine
                     ]
-                    console.log(args)
+
+                    self.setState({
+                        foreground: set_foreground ? settings["foreground"] : null,
+                        background: set_background ? settings["background"] : null,
+                        text: set_foreground ? contrastColor( settings["foreground"] ) : null
+                    })
                     Module['canvas'] = canvas
                     Module.ccall('mainf', 'number', types, args)
+
+
+
                 }
                 catch(error) {
                     // suppress the 'SimulateInfiniteLoop' error since it's
@@ -52,7 +61,7 @@ class EmulatorScreen extends React.Component {
                     // environment. If it's not caught, it will break the
                     // React component.
                     if(error !== "SimulateInfiniteLoop")
-                        console.error(error.message)
+                        console.error(error)
                 }
             })
         }
@@ -95,31 +104,47 @@ class EmulatorScreen extends React.Component {
     }
     render() {
         return (
-            <div className={"emulator-screen"}>
+            <div className={"emulator-screen"} style={{backgroundColor: this.state.background}}>
                 <canvas
                     ref={this.onCanvasLoaded.bind(this)}
                     height={theme["render-height"]}
                     width={theme["render-width"]}>
                 </canvas>
-                <button className={"quit"} onClick={this.props.onQuit}>
+                <button
+                className={"quit"}
+                style={{  backgroundColor: this.state.foreground, color: this.state.text }}
+                onClick={this.props.onQuit}
+                >
                     <i className="material-icons">home</i>
                 </button>
                 <Transition in={(this.state.paused && !this.state.saved)} timeout={100}>
                     {state => (
-                        <button className={`save ${state}`} onClick={this.save.bind(this)}>
+                        <button
+                        className={`save ${state}`}
+                        style={{  backgroundColor: this.state.foreground, color: this.state.text }}
+                        onClick={this.save.bind(this)}
+                        >
                             <i className="material-icons">save</i>
                         </button>
                     )}
                 </Transition>
                 <button
                 className={"pause"}
+                style={{
+                    backgroundColor: !this.state.saving ? this.state.foreground : '#BCBCBC',
+                    color: !this.state.saving ? this.state.text : 'white'
+                }}
                 disabled={this.state.saving}
                 onClick={this.pause.bind(this)}
                 >
                     {!this.state.paused && <i className="material-icons">pause</i>}
                     {this.state.paused && <i className="material-icons">play_arrow</i>}
                 </button>
-                <Snackbar className={"snackbar"} display={this.state.savedSnackbar}>
+                <Snackbar
+                className={"snackbar"}
+                style={{  backgroundColor: this.state.foreground, color: this.state.text }}
+                display={this.state.savedSnackbar}
+                >
                     {"Game Saved!"}
                 </Snackbar>
             </div>
