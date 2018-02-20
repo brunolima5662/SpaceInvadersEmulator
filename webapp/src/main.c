@@ -324,7 +324,7 @@ void cpu_run(void * arg) {
                         handle_input(ctx->machine, SDL_KEYDOWN, SDLK_1);
                 }
                 else if(ev->tfinger.x < 0.5) { // left touch
-                    if(ctx->rightTouch > 0) {
+                    if(ctx->rightTouch == 1) {
                         // stop moving right and shoot
                         handle_input(ctx->machine, SDL_KEYUP, SDLK_d);
                         handle_input(ctx->machine, SDL_KEYDOWN, SDLK_SPACE);
@@ -334,10 +334,10 @@ void cpu_run(void * arg) {
                         // move left
                         handle_input(ctx->machine, SDL_KEYDOWN, SDLK_a);
                     }
-                    ctx->leftTouch += 1;
+                    ctx->leftTouch = 1;
                 }
                 else { // right touch
-                    if(ctx->leftTouch > 0) {
+                    if(ctx->leftTouch == 1) {
                         // stop moving left and shoot
                         handle_input(ctx->machine, SDL_KEYUP, SDLK_a);
                         handle_input(ctx->machine, SDL_KEYDOWN, SDLK_SPACE);
@@ -347,7 +347,7 @@ void cpu_run(void * arg) {
                         // move right
                         handle_input(ctx->machine, SDL_KEYDOWN, SDLK_d);
                     }
-                    ctx->rightTouch += 1;
+                    ctx->rightTouch = 1;
                 }
                 break;
             case SDL_FINGERUP:
@@ -360,7 +360,7 @@ void cpu_run(void * arg) {
                     ctx->start_state += 1;
                 }
                 else if(ev->tfinger.x < 0.5) { // left touch
-                    if(ctx->rightTouch > 0) {
+                    if(ctx->rightTouch == 1) {
                         // stop shooting and move right
                         handle_input(ctx->machine, SDL_KEYDOWN, SDLK_d);
                     }
@@ -368,10 +368,10 @@ void cpu_run(void * arg) {
                         // stop moving left
                         handle_input(ctx->machine, SDL_KEYUP, SDLK_a);
                     }
-                    ctx->leftTouch -= 1;
+                    ctx->leftTouch = 0;
                 }
                 else { // right touch
-                    if(ctx->leftTouch > 0) {
+                    if(ctx->leftTouch == 1) {
                         // stop shooting and move left
                         handle_input(ctx->machine, SDL_KEYDOWN, SDLK_a);
                     }
@@ -379,7 +379,7 @@ void cpu_run(void * arg) {
                         // stop moving right
                         handle_input(ctx->machine, SDL_KEYUP, SDLK_d);
                     }
-                    ctx->rightTouch -= 1;
+                    ctx->rightTouch = 0;
                 }
                 break;
             default: ;

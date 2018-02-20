@@ -13,13 +13,13 @@ global _media_7
 global _media_8
 global _media_end
 
-_media_0:   incbin "0.wav"
-_media_1:   incbin "1.wav"
-_media_2:   incbin "2.wav"
-_media_3:   incbin "3.wav"
-_media_4:   incbin "4.wav"
-_media_5:   incbin "5.wav"
-_media_6:   incbin "6.wav"
-_media_7:   incbin "7.wav"
-_media_8:   incbin "8.wav"
+_media_0:   incbin "0.mp3"
+_media_1:   incbin "1.mp3"
+_media_2:   incbin "2.mp3"
+_media_3:   incbin "3.mp3"
+_media_4:   incbin "4.mp3"
+_media_5:   incbin "5.mp3"
+_media_6:   incbin "6.mp3"
+_media_7:   incbin "7.mp3"
+_media_8:   incbin "8.mp3"
 _media_end:

@@ -241,7 +241,7 @@ void load_sound_samples(machine_t * state) {
 #else
     char _filename[13];
     for(uint8_t i = 0; i < SOUND_SAMPLES; i++) {
-        sprintf(_filename, "assets/%d.wav", i);
+        sprintf(_filename, "assets/%d.mp3", i);
         sample = SDL_RWFromFile(_filename, "rb");
         state->samples[i] = Mix_LoadWAV_RW(sample, 1);
         if(state->samples[i] == NULL)

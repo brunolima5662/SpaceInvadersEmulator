@@ -21,24 +21,32 @@ export const freeCArray = pointer => {
     Module._free(pointer.byteOffset)
 }
 
-// return an array [r, g, b] from a hex color value
-export const rgbFromHex = hex => {
-    const raw_hex = hex.replace(/\W/ig, '')
-    return [
-        parseInt( raw_hex.substr(0, 2), 16 ), // red
-        parseInt( raw_hex.substr(2, 2), 16 ), // green
-        parseInt( raw_hex.substr(4, 2), 16 ), // blue
-    ]
+function rgbFromHex( hex ) {
+    const hex_digits = hex.replace(/\W/ig, '')
+    const num_chars  = hex_digits.length / 3
+    if( hex_digits.length == 3 || hex_digits.length == 6 ) {
+        var rgb = [
+            parseInt( hex_digits.substr( 0, num_chars ), 16 ), // red
+            parseInt( hex_digits.substr( 1 * num_chars, num_chars ), 16 ), // green
+            parseInt( hex_digits.substr( 2 * num_chars, num_chars ), 16 ), // blue
+        ]
+        if( num_chars == 1 ) {
+            rgb = rgb.map( x => ( x << 4 ) | x )
+        }
+        return rgb
+    }
+    else {
+        throw new Error( "Invalid color hex value" )
+    }
 }
 
 // return an array in the format RGB332 [r, g, b] from a hex color value
 export const rgb332FromHex = hex => {
-    const raw_hex = hex.replace(/\W/ig, '')
-    return [
-        parseInt( Math.round( parseInt( raw_hex.substr(0, 2), 16 ) / 36.0 ) ), // red
-        parseInt( Math.round( parseInt( raw_hex.substr(2, 2), 16 ) / 36.0 ) ), // green
-        parseInt( Math.round( parseInt( raw_hex.substr(4, 2), 16 ) / 85.0 ) ), // blue
-    ]
+    var rgb = rgbFromHex( hex )
+    rgb[0]  = parseInt( Math.round ( rgb[0] / 36.0 ) )
+    rgb[1]  = parseInt( Math.round ( rgb[1] / 36.0 ) )
+    rgb[2]  = parseInt( Math.round ( rgb[2] / 85.0 ) )
+    return rgb
 }
 
 // return either black or white, whichever has a better
