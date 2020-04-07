@@ -30,7 +30,7 @@ int main(int argc, char * argv[]) {
 
     // declare and initialize machine
     machine_t machine;
-    initialize_machine(&machine);
+    initialize_machine(&machine, 3);
 
     // read rom file into memory
     if(argc > 1) {
