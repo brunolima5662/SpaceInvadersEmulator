@@ -5,14 +5,15 @@
 #include <time.h>
 #include <stdio.h>
 #include <string.h>
-#include <SDL2/SDL.h>
 
 #ifndef __EMSCRIPTEN__
 #include <SDL.h>
 #include <SDL_mixer.h>
 #include "media.h"
 #else
-#include <SDL/SDL_mixer.h>
+#include <SDL2/SDL.h>
+#include <SDL2/SDL_mixer.h>
+#include <SDL2/SDL_gamecontroller.h>
 #endif
 
 #define MEMORY_SIZE 0x10000
@@ -84,6 +85,7 @@ int check_machine_instruction(machine_t *);
 void render_screen(machine_t *, SDL_Surface *, uint8_t, uint8_t);
 void sleep_microseconds(uint64_t);
 void interrupt_cpu(machine_t *, uint8_t);
-SI_KEY_RESULT handle_input(machine_t *, uint32_t, uint32_t);
+SI_KEY_RESULT handle_keyboard(machine_t *, uint8_t, uint32_t);
+SI_KEY_RESULT handle_controller(machine_t *, uint8_t, uint8_t);
 
 #endif

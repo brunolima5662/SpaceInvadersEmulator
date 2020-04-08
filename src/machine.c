@@ -187,13 +187,31 @@ void render_screen(machine_t * state, SDL_Surface * screen, uint8_t fcolor, uint
 }
 
 void update_input_bit(machine_t * state, uint8_t port, uint8_t bit, uint32_t event) {
-    if(event == SDL_KEYDOWN)
-        state->ports_in[port] |= (1 << bit);
+    if(event == SDL_PRESSED)
+        state->ports_in[port] |=  (1 << bit);
     else
         state->ports_in[port] &= ~(1 << bit);
 }
 
-SI_KEY_RESULT handle_input(machine_t * state, uint32_t event, uint32_t key) {
+SI_KEY_RESULT handle_controller(machine_t * state, uint8_t event, uint8_t button) {
+    SI_KEY_RESULT result = SI_KEY_RESULT_OK;
+    switch(button) {
+        case SDL_CONTROLLER_BUTTON_DPAD_LEFT:
+            update_input_bit(state, 1, 5, event); break;
+        case SDL_CONTROLLER_BUTTON_DPAD_RIGHT:
+            update_input_bit(state, 1, 6, event); break;
+        case SDL_CONTROLLER_BUTTON_A:
+            update_input_bit(state, 1, 4, event); break;
+        case SDL_CONTROLLER_BUTTON_START:
+            update_input_bit(state, 1, 2, event); break;
+        case SDL_CONTROLLER_BUTTON_BACK:
+            update_input_bit(state, 1, 0, event); break;
+        default: ;
+    }
+    return result;
+}
+
+SI_KEY_RESULT handle_keyboard(machine_t * state, uint8_t event, uint32_t key) {
     SI_KEY_RESULT result = SI_KEY_RESULT_OK;
     switch(key) {
         case SDLK_c: // Coin
@@ -204,9 +222,9 @@ SI_KEY_RESULT handle_input(machine_t * state, uint32_t event, uint32_t key) {
             update_input_bit(state, 1, 1, event); break;
         case SDLK_SPACE: // Player 1 Shoot Button
             update_input_bit(state, 1, 4, event); break;
-        case SDLK_a: // Player 2 Left Button
+        case SDLK_a: // Player 1 Left Button
             update_input_bit(state, 1, 5, event); break;
-        case SDLK_d: // Player 2 Right Button
+        case SDLK_d: // Player 1 Right Button
             update_input_bit(state, 1, 6, event); break;
         case SDLK_RETURN2: // Player 2 Shoot Button
             update_input_bit(state, 2, 4, event); break;

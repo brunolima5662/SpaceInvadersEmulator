@@ -62,3 +62,6 @@ webapp/node_modules/**/*
 
 # assets symbolic link for webapp
 webapp/assets/**/*
+
+# visual studio code configuration
+.vscode/**/*

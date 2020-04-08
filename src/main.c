@@ -1,8 +1,9 @@
 #include <stdio.h>
 #include <stdint.h>
 #include <time.h>
-#include <SDL.h>
-#include <SDL_mixer.h>
+#include <SDL2/SDL.h>
+#include <SDL2/SDL_mixer.h>
+#include <SDL2/SDL_gamecontroller.h>
 #include "machine.h"
 #include "emulator.h"
 #include "disassembler.h"
@@ -11,14 +12,15 @@ int main(int argc, char * argv[]) {
     uint8_t done = 0, paused = 0;
     int volume = -1;
     FILE * rom = NULL;
-    SDL_Event      evt;
-    SDL_Window   * window    = NULL;
-    SDL_Renderer * renderer  = NULL;
-    SDL_Surface  * screen    = NULL;
-    SDL_Texture  * texture   = NULL;
+    SDL_Event           evt;
+    SDL_Window          * window     = NULL;
+    SDL_Renderer        * renderer   = NULL;
+    SDL_Surface         * screen     = NULL;
+    SDL_Texture         * texture    = NULL;
+    SDL_GameController  * controller = NULL;
 
     // start SDL library and main window
-    if(SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO) < 0) {
+    if(SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO | SDL_INIT_GAMECONTROLLER) < 0) {
         fprintf(stderr, "SDL could not initialize! SDL_Error: %s\n", SDL_GetError());
         exit(EXIT_FAILURE);
     }
@@ -26,6 +28,16 @@ int main(int argc, char * argv[]) {
         SDL_Quit();
         fprintf(stderr, "SDL_mixer Initialization Error: %s\n", Mix_GetError());
         exit(EXIT_FAILURE);
+    }
+
+    if(SDL_NumJoysticks()) {
+        controller = SDL_GameControllerOpen(0);
+        if(!controller) {
+            fprintf(stderr, "Error opening game controller, defaulting to keyboard...");
+        }
+    }
+    else {
+        fprintf(stdout, "No game controllers found. Using keyboard...");
     }
 
     // declare and initialize machine
@@ -121,10 +133,10 @@ int main(int argc, char * argv[]) {
         if(cpu_time_delta < 16000)
             sleep_microseconds(16000 - cpu_time_delta);
 
-            // store current time to calculate the processing time delta
-            // during the next frame render
-            clock_gettime(CLOCK_REALTIME, &cpu_timer);
-            cpu_time_start = cpu_timer.tv_nsec;
+        // store current time to calculate the processing time delta
+        // during the next frame render
+        clock_gettime(CLOCK_REALTIME, &cpu_timer);
+        cpu_time_start = cpu_timer.tv_nsec;
 
         if(!paused) {
 
@@ -166,7 +178,7 @@ int main(int argc, char * argv[]) {
                 case SDL_QUIT: done = 1; break;
                 case SDL_KEYUP:
                 case SDL_KEYDOWN:
-                    key_result = handle_input(&machine, evt.type, evt.key.keysym.sym);
+                    key_result = handle_keyboard(&machine, evt.key.state, evt.key.keysym.sym);
                     done |= (key_result == SI_KEY_RESULT_EXIT);
                     if(key_result == SI_KEY_RESULT_TOGGLE_MUTE && evt.type == SDL_KEYUP) {
                         if(volume < 0) {
@@ -181,15 +193,23 @@ int main(int argc, char * argv[]) {
                     if(key_result == SI_KEY_RESULT_PAUSE && evt.type == SDL_KEYUP)
                         paused ^= 0x01;
                     break;
+                case SDL_CONTROLLERBUTTONDOWN:
+                case SDL_CONTROLLERBUTTONUP:
+                    key_result = handle_controller(&machine, evt.cbutton.state, evt.cbutton.button);
+                    done |= (key_result == SI_KEY_RESULT_EXIT);
+                    break;
                 default: ;
             }
         }
+        
     }
 
     // shutdown machine
     shutdown_machine(&machine);
 
     // quit SDL
+    if(controller)
+        SDL_GameControllerClose(controller);
     SDL_FreeSurface(screen);
     SDL_DestroyTexture(texture);
     SDL_DestroyRenderer(renderer);
