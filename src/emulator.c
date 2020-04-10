@@ -1,5 +1,6 @@
 #include "emulator.h"
 
+#ifndef __EMSCRIPTEN__
 uint8_t clock_cycles[] = {
 /*  00  01  02  03  04  05  06  07  08  09  0a  0b  0c  0d  0e  0f	*/
 	04, 10, 07, 05, 05, 05, 07, 04, 04, 10, 07, 05, 05, 05, 07, 04, /* 0x00 - 0x0f */
@@ -19,6 +20,7 @@ uint8_t clock_cycles[] = {
 	11, 10, 10, 18, 17, 11, 07, 11, 11, 05, 10, 04, 17, 04, 07, 11, /* 0xe0 - 0xef */
 	11, 10, 10, 04, 17, 11, 07, 11, 11, 05, 10, 04, 17, 04, 07, 11  /* 0xf0 - 0xff */
 };
+#endif
 
 void update_flags(machine_t * state, uint16_t value, uint8_t mask) {
     if(mask & 0x01)

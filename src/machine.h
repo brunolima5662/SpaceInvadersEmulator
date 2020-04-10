@@ -4,17 +4,29 @@
 #include <stdint.h>
 #include <time.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 
 #ifndef __EMSCRIPTEN__
-#include <SDL.h>
-#include <SDL_mixer.h>
-#include "media.h"
-#else
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_mixer.h>
 #include <SDL2/SDL_gamecontroller.h>
+#include "media.h"
+#else
+#include <SDL/SDL.h>
+#include <SDL/SDL_mixer.h>
 #endif
+
+/* Joystick Button Indexes
+ *
+ *  Back:  6
+ *  Start: 7
+ *  A:     0
+ *  Right: 2
+ *  Left:  8
+ *  Right and Left Up: 3
+ * 
+ */
 
 #define MEMORY_SIZE 0x10000
 #define ROM_START 0x0000

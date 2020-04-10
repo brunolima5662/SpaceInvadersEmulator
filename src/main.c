@@ -40,6 +40,7 @@ int main(int argc, char * argv[]) {
         fprintf(stdout, "No game controllers found. Using keyboard...");
     }
 
+
     // declare and initialize machine
     machine_t machine;
     initialize_machine(&machine, 3);

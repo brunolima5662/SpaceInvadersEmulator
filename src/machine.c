@@ -195,6 +195,7 @@ void update_input_bit(machine_t * state, uint8_t port, uint8_t bit, uint32_t eve
 
 SI_KEY_RESULT handle_controller(machine_t * state, uint8_t event, uint8_t button) {
     SI_KEY_RESULT result = SI_KEY_RESULT_OK;
+#ifndef __EMSCRIPTEN__
     switch(button) {
         case SDL_CONTROLLER_BUTTON_DPAD_LEFT:
             update_input_bit(state, 1, 5, event); break;
@@ -208,6 +209,24 @@ SI_KEY_RESULT handle_controller(machine_t * state, uint8_t event, uint8_t button
             update_input_bit(state, 1, 0, event); break;
         default: ;
     }
+#else
+    switch(button) {
+        case 0:
+            update_input_bit(state, 1, 4, event); break;
+        case 2:
+            update_input_bit(state, 1, 6, SDL_PRESSED); break;
+        case 6:
+            update_input_bit(state, 1, 0, event); break;
+        case 7:
+            update_input_bit(state, 1, 2, event); break;
+        case 8:
+            update_input_bit(state, 1, 5, SDL_PRESSED); break;
+        case 50:
+            update_input_bit(state, 1, 6, SDL_RELEASED); break;
+            update_input_bit(state, 1, 5, SDL_RELEASED); break;
+        default: ;
+    }
+#endif
     return result;
 }
 

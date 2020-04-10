@@ -1,34 +1,35 @@
 #include <stdint.h>
 #include <stdlib.h>
-#include <SDL2/SDL.h>
-#include <SDL/SDL_mixer.h>
 #include <emscripten/emscripten.h>
-#include "native/machine.h"
+#include <SDL/SDL.h>
+#include <SDL/SDL_mixer.h>
 #include "native/emulator.h"
+#include "native/machine.h"
 #include "native/disassembler.h"
 
 typedef struct cpu_context {
-    machine_t    *  machine;
-    SDL_Window   *  window;
-    SDL_Renderer *  renderer;
-    SDL_Surface  *  screen;
-    SDL_Texture  *  texture;
-    SDL_Event       event;
-    uint8_t         running;
-    uint8_t         paused;
-    uint8_t         volume;
-    uint8_t         interrupt;
-    uint32_t        cycles;
-    uint32_t        frame;
-    uint32_t        cycles_per_frame;
-    uint16_t        cycles_per_interrupt;
-    uint8_t         foreground;
-    uint8_t         background;
-    uint8_t         start_state;
-    uint8_t         leftTouch;
-    uint8_t         rightTouch;
-    uint8_t         shooting;
-    uint8_t         done;
+    machine_t    * machine;
+    SDL_Window   * window;
+    SDL_Renderer * renderer;
+    SDL_Surface  * screen;
+    SDL_Texture  * texture;
+    SDL_Joystick * controller;
+    SDL_Event      event;
+    uint8_t        running;
+    uint8_t        paused;
+    uint8_t        volume;
+    uint8_t        interrupt;
+    uint32_t       cycles;
+    uint32_t       frame;
+    uint32_t       cycles_per_frame;
+    uint16_t       cycles_per_interrupt;
+    uint8_t        foreground;
+    uint8_t        background;
+    uint8_t        start_state;
+    uint8_t        leftTouch;
+    uint8_t        rightTouch;
+    uint8_t        shooting;
+    uint8_t        done;
 } cpu_context_t;
 
 void cpu_run(void *);
@@ -37,6 +38,31 @@ void quit_sdl();
 // the struct will hold and references and flags
 // that the emulator loop will need
 cpu_context_t context;
+
+// the following array holds the number of clock cycles it
+// takes to run the opcode of its index.
+// e.g clock_cycles[0xd4] = 17 means it takes seventeen
+// clock cycles to run opcode 0xd4 in the 8080 cpu.
+uint8_t clock_cycles[] = {
+/*  00  01  02  03  04  05  06  07  08  09  0a  0b  0c  0d  0e  0f	*/
+	04, 10, 07, 05, 05, 05, 07, 04, 04, 10, 07, 05, 05, 05, 07, 04, /* 0x00 - 0x0f */
+	04, 10, 07, 05, 05, 05, 07, 04, 04, 10, 07, 05, 05, 05, 07, 04, /* 0x10 - 0x1f */
+	04, 10, 16, 05, 05, 05, 07, 04, 04, 10, 16, 05, 05, 05, 07, 04, /* 0x20 - 0x2f */
+	04, 10, 13, 05, 10, 10, 07, 04, 04, 10, 13, 05, 05, 05, 07, 04, /* 0x30 - 0x3f */
+	05, 05, 05, 05, 05, 05, 07, 05, 05, 05, 05, 05, 05, 05, 07, 05, /* 0x40 - 0x4f */
+	05, 05, 05, 05, 05, 05, 07, 05, 05, 05, 05, 05, 05, 05, 07, 05, /* 0x50 - 0x5f */
+	05, 05, 05, 05, 05, 05, 07, 05, 05, 05, 05, 05, 05, 05, 07, 05, /* 0x60 - 0x6f */
+	07, 07, 07, 07, 07, 07, 07, 07, 05, 05, 05, 05, 05, 05, 07, 05, /* 0x70 - 0x7f */
+	04, 04, 04, 04, 04, 04, 07, 04, 04, 04, 04, 04, 04, 04, 07, 04, /* 0x80 - 0x8f */
+	04, 04, 04, 04, 04, 04, 07, 04, 04, 04, 04, 04, 04, 04, 07, 04, /* 0x90 - 0x9f */
+	04, 04, 04, 04, 04, 04, 07, 04, 04, 04, 04, 04, 04, 04, 07, 04, /* 0xa0 - 0xaf */
+	04, 04, 04, 04, 04, 04, 07, 04, 04, 04, 04, 04, 04, 04, 07, 04, /* 0xb0 - 0xbf */
+	11, 10, 10, 10, 17, 11, 07, 11, 11, 10, 10, 04, 17, 17, 07, 11, /* 0xc0 - 0xcf */
+	11, 10, 10, 10, 17, 11, 07, 11, 11, 04, 10, 10, 17, 04, 07, 11, /* 0xd0 - 0xdf */
+	11, 10, 10, 18, 17, 11, 07, 11, 11, 05, 10, 04, 17, 04, 07, 11, /* 0xe0 - 0xef */
+	11, 10, 10, 04, 17, 11, 07, 11, 11, 05, 10, 04, 17, 04, 07, 11  /* 0xf0 - 0xff */
+};
+
 
 int main(int argc, char * argv[]) {
     return 0;
@@ -56,11 +82,12 @@ int EMSCRIPTEN_KEEPALIVE mainf(
     FILE * rom = NULL;
     SDL_Event       evt;
     SDL_DisplayMode displayMode;
-    SDL_Window   * window    = NULL;
-    SDL_Renderer * renderer  = NULL;
-    SDL_Surface  * screen    = NULL, * r_screen = NULL;
-    SDL_Texture  * texture   = NULL;
-    SDL_Rect     screen_rect = { 0, 0, VIDEO_Y * 4, VIDEO_X * 4 };
+    SDL_Window      * window    = NULL;
+    SDL_Renderer    * renderer  = NULL;
+    SDL_Surface     * screen    = NULL, * r_screen = NULL;
+    SDL_Texture     * texture   = NULL;
+    SDL_Joystick    * controller = NULL;
+    SDL_Rect          screen_rect = { 0, 0, VIDEO_Y * 4, VIDEO_X * 4 };
 
     // first, check that there are no emulation loop running.
     // if there are, cancel and close them first
@@ -77,7 +104,7 @@ int EMSCRIPTEN_KEEPALIVE mainf(
     }
 
     // start SDL library and main window
-    if(SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO) < 0) {
+    if(SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO | SDL_INIT_JOYSTICK) < 0) {
         fprintf(stderr, "SDL could not initialize! SDL_Error: %s\n", SDL_GetError());
         exit(EXIT_FAILURE);
     }
@@ -85,6 +112,16 @@ int EMSCRIPTEN_KEEPALIVE mainf(
         SDL_Quit();
         fprintf(stderr, "SDL_mixer Initialization Error: %s\n", Mix_GetError());
         exit(EXIT_FAILURE);
+    }
+
+    if(SDL_NumJoysticks()) {
+        controller = SDL_JoystickOpen(0);
+        if(!controller) {
+            fprintf(stderr, "Error opening game controller, defaulting to keyboard...");
+        }
+    }
+    else {
+        fprintf(stdout, "No game controllers found. Using keyboard...");
     }
 
     // declare and initialize machine
@@ -131,7 +168,8 @@ int EMSCRIPTEN_KEEPALIVE mainf(
         SDL_WINDOW_SHOWN | SDL_WINDOW_RESIZABLE
     );
     renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
-    screen   = SDL_CreateRGBSurfaceWithFormat(0, VIDEO_Y, VIDEO_X, 8, SDL_PIXELFORMAT_RGB332);
+    // screen   = SDL_CreateRGBSurfaceWithFormat(0, VIDEO_Y, VIDEO_X, 8, SDL_PIXELFORMAT_RGB332);
+    screen   = SDL_CreateRGBSurfaceFrom(window, VIDEO_Y, VIDEO_X, 8, VIDEO_Y, 0xE0, 0x1C, 0x03, 0x00);
     texture  = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGB332, SDL_TEXTUREACCESS_STREAMING, VIDEO_Y, VIDEO_X);
 
 
@@ -152,6 +190,7 @@ int EMSCRIPTEN_KEEPALIVE mainf(
     context.renderer = renderer;
     context.screen = screen;
     context.texture = texture;
+    context.controller = controller;
     context.paused = 0;
     context.volume = 0;
     context.interrupt = 1;
@@ -219,6 +258,8 @@ uint32_t EMSCRIPTEN_KEEPALIVE get_machine() {
 // cleanup after main loop finishes
 void quit_sdl() {
     if(context.running) {
+        if(context.controller)
+            SDL_JoystickClose(context.controller);
         SDL_FreeSurface(context.screen);
         SDL_DestroyTexture(context.texture);
         SDL_DestroyRenderer(context.renderer);
@@ -280,13 +321,13 @@ void cpu_run(void * arg) {
         // the keyup trigger for it...
         if(ctx->shooting) {
             ctx->shooting = 0;
-            handle_input(ctx->machine, SDL_KEYUP, SDLK_SPACE);
+            handle_keyboard(ctx->machine, SDL_RELEASED, SDLK_SPACE);
         }
         else if(ctx->frame % 10 == 0 && ctx->leftTouch > 0 && ctx->rightTouch > 0) {
             // every 10 frames, check if both left and right touches are
             // triggered, and if so, trigger the shoot key...
             ctx->shooting = 1;
-            handle_input(ctx->machine, SDL_KEYDOWN, SDLK_SPACE);
+            handle_keyboard(ctx->machine, SDL_PRESSED, SDLK_SPACE);
         }
     }
 
@@ -299,7 +340,7 @@ void cpu_run(void * arg) {
             /* KEYBOARD CONTROLS */
             case SDL_KEYUP:
             case SDL_KEYDOWN:
-                key_result = handle_input(ctx->machine, ev->type, ev->key.keysym.sym);
+                key_result = handle_keyboard(ctx->machine, ev->key.state, ev->key.keysym.sym);
                 ctx->done |= (key_result == SI_KEY_RESULT_EXIT);
                 if(key_result == SI_KEY_RESULT_TOGGLE_MUTE && ev->type == SDL_KEYUP) {
                     if(ctx->volume < 0) {
@@ -314,38 +355,48 @@ void cpu_run(void * arg) {
                 if(key_result == SI_KEY_RESULT_PAUSE && ev->type == SDL_KEYUP)
                     ctx->paused ^= 0x01;
                 break;
+            /* GAME CONTROLLER CONTROLS */
+            case SDL_JOYBUTTONDOWN:
+            case SDL_JOYBUTTONUP:
+                key_result = handle_controller(ctx->machine, ev->jbutton.state, ev->jbutton.button);
+                ctx->done |= (key_result == SI_KEY_RESULT_EXIT);
+                break;
+            case SDL_JOYHATMOTION:
+                key_result = handle_controller(ctx->machine, 0, ev->jhat.hat == 0 ? 50 : ev->jhat.hat);
+                ctx->done |= (key_result == SI_KEY_RESULT_EXIT);
+                break;
             /* TOUCH CONTROLS */
             case SDL_FINGERDOWN:
                 if(ctx->start_state < 2) {
                     // process insert coin and press start
                     if(ctx->start_state == 0)
-                        handle_input(ctx->machine, SDL_KEYDOWN, SDLK_c);
+                        handle_keyboard(ctx->machine, SDL_PRESSED, SDLK_c);
                     else
-                        handle_input(ctx->machine, SDL_KEYDOWN, SDLK_1);
+                        handle_keyboard(ctx->machine, SDL_PRESSED, SDLK_1);
                 }
                 else if(ev->tfinger.x < 0.5) { // left touch
                     if(ctx->rightTouch == 1) {
                         // stop moving right and shoot
-                        handle_input(ctx->machine, SDL_KEYUP, SDLK_d);
-                        handle_input(ctx->machine, SDL_KEYDOWN, SDLK_SPACE);
+                        handle_keyboard(ctx->machine, SDL_RELEASED, SDLK_d);
+                        handle_keyboard(ctx->machine, SDL_PRESSED, SDLK_SPACE);
                         ctx->shooting = 1;
                     }
                     else {
                         // move left
-                        handle_input(ctx->machine, SDL_KEYDOWN, SDLK_a);
+                        handle_keyboard(ctx->machine, SDL_PRESSED, SDLK_a);
                     }
                     ctx->leftTouch = 1;
                 }
                 else { // right touch
                     if(ctx->leftTouch == 1) {
                         // stop moving left and shoot
-                        handle_input(ctx->machine, SDL_KEYUP, SDLK_a);
-                        handle_input(ctx->machine, SDL_KEYDOWN, SDLK_SPACE);
+                        handle_keyboard(ctx->machine, SDL_RELEASED, SDLK_a);
+                        handle_keyboard(ctx->machine, SDL_PRESSED, SDLK_SPACE);
                         ctx->shooting = 1;
                     }
                     else {
                         // move right
-                        handle_input(ctx->machine, SDL_KEYDOWN, SDLK_d);
+                        handle_keyboard(ctx->machine, SDL_PRESSED, SDLK_d);
                     }
                     ctx->rightTouch = 1;
                 }
@@ -354,30 +405,30 @@ void cpu_run(void * arg) {
                 if(ctx->start_state < 2) {
                     // process insert coin and press start
                     if(ctx->start_state == 0)
-                        handle_input(ctx->machine, SDL_KEYUP, SDLK_c);
+                        handle_keyboard(ctx->machine, SDL_RELEASED, SDLK_c);
                     else
-                        handle_input(ctx->machine, SDL_KEYUP, SDLK_1);
+                        handle_keyboard(ctx->machine, SDL_RELEASED, SDLK_1);
                     ctx->start_state += 1;
                 }
                 else if(ev->tfinger.x < 0.5) { // left touch
                     if(ctx->rightTouch == 1) {
                         // stop shooting and move right
-                        handle_input(ctx->machine, SDL_KEYDOWN, SDLK_d);
+                        handle_keyboard(ctx->machine, SDL_PRESSED, SDLK_d);
                     }
                     else {
                         // stop moving left
-                        handle_input(ctx->machine, SDL_KEYUP, SDLK_a);
+                        handle_keyboard(ctx->machine, SDL_RELEASED, SDLK_a);
                     }
                     ctx->leftTouch = 0;
                 }
                 else { // right touch
                     if(ctx->leftTouch == 1) {
                         // stop shooting and move left
-                        handle_input(ctx->machine, SDL_KEYDOWN, SDLK_a);
+                        handle_keyboard(ctx->machine, SDL_PRESSED, SDLK_a);
                     }
                     else {
                         // stop moving right
-                        handle_input(ctx->machine, SDL_KEYUP, SDLK_d);
+                        handle_keyboard(ctx->machine, SDL_RELEASED, SDLK_d);
                     }
                     ctx->rightTouch = 0;
                 }
